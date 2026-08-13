@@ -11,7 +11,7 @@ import { setState, state } from "./state.js";
 import { runBoot } from "./ui/boot.js";
 import { startClocks } from "./ui/clock.js";
 import { renderDossier } from "./ui/dossier.js";
-import { initReveal } from "./ui/reveal.js";
+import { initReveal, runGlitch } from "./ui/reveal.js";
 import { initStarfield } from "./ui/starfield.js";
 import { renderStatus } from "./ui/status.js";
 import { renderTelemetry, startISS } from "./ui/telemetry.js";
@@ -138,7 +138,7 @@ runBoot(fxLive).then((played) => {
   initReveal();
   // With the boot played, the wordmark has already made its entrance.
   if (!played && fxLive) {
-    document.getElementById("hero-stamp")?.classList.add("gl-run");
+    runGlitch(document.getElementById("hero-stamp"));
   }
   sizeMarquee();
 });

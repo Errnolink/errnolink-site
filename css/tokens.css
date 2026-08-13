@@ -52,6 +52,10 @@
 
   /* ── Type ────────────────────────────────────────────────────────────── */
   --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+  /* Braille patterns (U+2800–28FF) are not in every mono face; the symbol
+     fallbacks carry them so the graphs never degrade to tofu. */
+  --font-braille: "JetBrains Mono", "Segoe UI Symbol", "Noto Sans Symbols 2",
+    "DejaVu Sans Mono", ui-monospace, monospace;
   --font-stamp: "Bebas Neue", "Arial Narrow", sans-serif;
   --font-jp: "Shippori Mincho B1", serif;
 

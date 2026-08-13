@@ -23,13 +23,23 @@
   to   { clip-path: inset(0 0 0 0); }
 }
 
-@keyframes glitch-slice {
-  0%   { clip-path: inset(12% 0 61% 0); transform: translateX(-3px); opacity: 0.8; animation-timing-function: step-end; }
-  20%  { clip-path: inset(55% 0 25% 0); transform: translateX(3px);  opacity: 0.8; animation-timing-function: step-end; }
-  40%  { clip-path: inset(80% 0 4% 0);  transform: translateX(-2px); opacity: 0.8; animation-timing-function: step-end; }
-  60%  { clip-path: inset(30% 0 48% 0); transform: translateX(2px);  opacity: 0.8; animation-timing-function: step-end; }
-  80%  { clip-path: inset(0 0 92% 0);   transform: translateX(-1px); opacity: 0.8; animation-timing-function: step-end; }
-  100% { clip-path: inset(0 0 100% 0);  transform: translateX(0);    opacity: 0; }
+/* Chromatic split, after the cadence-planner treatment: an offset copy of
+   the text carrying only a coloured shadow, clipped to a band that jumps
+   between frames. Two of them, mirrored, running against each other. */
+@keyframes glitch-split-a {
+  0%   { transform: translate(-4px, -1px); clip-path: inset(2% 0 64% 0); }
+  25%  { transform: translate(5px, 1px);   clip-path: inset(28% 0 46% 0); }
+  50%  { transform: translate(-3px, 0);    clip-path: inset(56% 0 20% 0); }
+  75%  { transform: translate(3px, -1px);  clip-path: inset(10% 0 72% 0); }
+  100% { transform: translate(0, 0);       clip-path: inset(0 0 100% 0); opacity: 0; }
+}
+
+@keyframes glitch-split-b {
+  0%   { transform: translate(4px, 1px);   clip-path: inset(50% 0 12% 0); }
+  25%  { transform: translate(-5px, -1px); clip-path: inset(14% 0 58% 0); }
+  50%  { transform: translate(3px, 0);     clip-path: inset(70% 0 6% 0); }
+  75%  { transform: translate(-3px, 1px);  clip-path: inset(38% 0 40% 0); }
+  100% { transform: translate(0, 0);       clip-path: inset(100% 0 0 0); opacity: 0; }
 }
 
 /* ── Section choreography ───────────────────────────────────────────────── */
@@ -92,38 +102,66 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    THE GLITCH APPARATUS
 
-   Two absolutely-positioned copies of the text (cyan and orange) slice
-   across it once and die. Plays on reveal only — never on hover, never in
-   a loop.
+   A wipe, then a chromatic split: two offset copies of the text carrying
+   only coloured shadows, slicing across it once. Plays on reveal only —
+   never on hover, never in a loop.
+
+   Three things keep it cheap, and all three matter:
+
+   1. The copies exist ONLY while `.gl-run` is set. `content` is bound to
+      the running class, not to `[data-text]`, so nothing duplicates the
+      wordmark when it is just sitting there.
+   2. The copies are `color: transparent` and carry no blur — only a hard
+      offset shadow. Inheriting the hero's 18px halo meant every frame
+      repainted three blurred copies of 128px text, which is what made this
+      stutter.
+   3. The halo is suppressed on the element itself for the duration, so the
+      clip-path wipe repaints flat text. The glow arrives when it lands.
+
+   `reveal.js` removes the class on animationend, so the cost is bounded to
+   the burst.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 [data-text] {
   position: relative;
 }
 
-[data-text]::before,
-[data-text]::after {
+.gl-run {
+  animation: stamp-wipe 240ms var(--ease-out) both;
+  text-shadow: none;
+  will-change: clip-path;
+}
+
+.gl-run::before,
+.gl-run::after {
   content: attr(data-text);
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0;
   white-space: nowrap;
+  color: transparent;
+  will-change: transform, clip-path;
 }
 
-[data-text]::before { color: var(--cyan); }
-[data-text]::after { color: var(--primary); }
+.gl-run::before {
+  text-shadow: -2px 0 var(--cyan);
+  animation: glitch-split-a 260ms steps(1, end) 200ms 1 both;
+}
 
-.gl-run { animation: stamp-wipe 240ms var(--ease-out) both; }
-.gl-run::before { animation: glitch-slice 280ms 240ms 1 both; }
-.gl-run::after  { animation: glitch-slice 280ms 240ms 1 both reverse; }
+.gl-run::after {
+  text-shadow: 2px 0 var(--primary), -1px 1px var(--cyan);
+  animation: glitch-split-b 260ms steps(1, end) 200ms 1 both;
+}
 
-/* Section headings get the short variant. */
-.gl-run--short { animation-duration: 200ms; }
+/* Section headings are small and numerous — they get a tighter burst. */
+.gl-run--short {
+  animation-duration: 180ms;
+}
+
 .gl-run--short::before,
 .gl-run--short::after {
   animation-duration: 200ms;
-  animation-delay: 200ms;
+  animation-delay: 150ms;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

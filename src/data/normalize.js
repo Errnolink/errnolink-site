@@ -143,6 +143,65 @@ export function feedSince(events) {
   return times.length ? new Date(Math.min(...times)) : null;
 }
 
+/**
+ * Per-repository push series across the feed window, for the braille rows.
+ *
+ * Each object gets its own track — btop's per-core layout, where the point
+ * is comparing shapes side by side rather than reading absolute values off
+ * an axis. Buckets span the feed's real coverage, so the rightmost column
+ * is always now and the leftmost is always the oldest event on record.
+ *
+ * @returns {{repo:string, series:number[], count:number}[]}
+ */
+export function pushSeriesByRepo(events, repos, columns = 64, now = new Date()) {
+  const pushes = events.filter((e) => e.push);
+  const times = pushes.map((e) => new Date(e.at).getTime()).filter((t) => !Number.isNaN(t));
+  const end = now.getTime();
+  const start = times.length ? Math.min(...times) : end - 86400000;
+  // Guard the degenerate case where every event shares one timestamp.
+  const span = Math.max(end - start, 3600000);
+
+  return repos.map((repo) => {
+    const series = new Array(columns).fill(0);
+    for (const ev of pushes) {
+      if (ev.repo !== repo.name) continue;
+      const t = new Date(ev.at).getTime();
+      const idx = Math.min(columns - 1, Math.max(0, Math.floor(((t - start) / span) * columns)));
+      series[idx] += 1;
+    }
+    return {
+      repo: repo.name,
+      series,
+      count: series.reduce((a, b) => a + b, 0),
+    };
+  });
+}
+
+/**
+ * Gaussian-smooth a series of discrete events into a density curve.
+ *
+ * Pushes are instants, not a sampled signal: bucketed raw, they render as
+ * isolated one-column spikes with nothing between them — a scatter plot
+ * wearing a graph's clothes. Spreading each event over its neighbours gives
+ * the continuous shape btop-style graphs are read for, where the eye is
+ * following where the work clustered rather than counting individual bars.
+ */
+export function smoothSeries(series, radius = 0) {
+  const r = radius || Math.max(2, Math.round(series.length / 14));
+  const sigma = r / 2;
+  const kernel = [];
+  for (let d = -r; d <= r; d++) kernel.push(Math.exp(-(d * d) / (2 * sigma * sigma)));
+
+  return series.map((_, i) => {
+    let sum = 0;
+    for (let d = -r; d <= r; d++) {
+      const v = series[i + d];
+      if (v) sum += v * kernel[d + r];
+    }
+    return sum;
+  });
+}
+
 /** Map a bucket onto the six-step severity ramp — magnitude, not judgement. */
 export function rampLevel(value, max) {
   if (!max || value <= 0) return 0;

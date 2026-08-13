@@ -19,6 +19,9 @@ const RAD = Math.PI / 180;
 /** Half the field of view, degrees. Wide enough to hold Orion to Gemini. */
 const HALF_FOV = 55;
 
+/** Drift of the anonymous field layer. Slow enough to read as depth. */
+const DRIFT_PX_PER_SEC = 7;
+
 /** Real stars go dimmer than body text — the sky is behind the instruments. */
 const INK_HOT = "#cfe8ff";
 const INK_MID = "#e8e8e4";
@@ -69,9 +72,12 @@ export function initStarfield(canvas) {
   // Twinkle is per-star and out of phase, so the sky shimmers rather than
   // pulsing in unison.
   const twinkle = STARS.map((s, i) => ({
-    on: s[3] < 2,
+    on: s[3] < 3,
+    // Golden-angle phases, so no two neighbours shimmer together.
     phase: (i * 2.399963) % (Math.PI * 2),
     freq: 0.6 + ((i * 37) % 100) / 140,
+    // Dimmer stars scintillate harder, which is how it actually looks.
+    amp: s[3] < 1.5 ? 0.12 : s[3] < 2 ? 0.18 : 0.24,
   }));
 
   const gmst0 = gmstHours();
@@ -92,7 +98,7 @@ export function initStarfield(canvas) {
   let scrollY = 0;
 
   let meteor = null;
-  let nextMeteorAt = performance.now() + 25000 + Math.random() * 20000;
+  let nextMeteorAt = performance.now() + 6000 + Math.random() * 12000;
 
   let raf = 0;
   let running = false;
@@ -181,16 +187,21 @@ export function initStarfield(canvas) {
     const nearY = pointerLerp.y * 2.5 + scrollY * -0.02;
 
     /* ── Field fill ─────────────────────────────────────────────────── */
-    ctx.save();
-    ctx.translate(farX, farY);
+    // The anonymous fill drifts continuously and wraps, which is what makes
+    // the sky read as moving rather than merely twinkling. The catalogue
+    // below it does NOT drift — those stars are real, and they travel at
+    // the sidereal rate or not at all.
+    const drift = live ? (now / 1000) * DRIFT_PX_PER_SEC : 0;
+    const period = w + 80;
     for (let i = 0; i < projectedFill.length; i++) {
       const p = projectedFill[i];
-      if (!p || p.x < -40 || p.x > w + 40 || p.y < -40 || p.y > h + 40) continue;
+      if (!p || p.y + farY < -40 || p.y + farY > h + 40) continue;
+      const raw = p.x + farX + drift;
+      const x = (((raw % period) + period) % period) - 40;
       ctx.globalAlpha = alphaFor(fieldFill[i][2]) * 0.55;
       ctx.fillStyle = INK_MID;
-      ctx.fillRect(p.x | 0, p.y | 0, 1, 1);
+      ctx.fillRect(x | 0, (p.y + farY) | 0, 1, 1);
     }
-    ctx.restore();
 
     /* ── Catalogue layer ────────────────────────────────────────────── */
     ctx.save();
@@ -229,7 +240,7 @@ export function initStarfield(canvas) {
 
       let a = alphaFor(mag);
       const tw = twinkle[i];
-      if (live && tw.on) a += 0.15 * Math.sin(t * tw.freq * 2 + tw.phase);
+      if (live && tw.on) a += tw.amp * Math.sin(t * tw.freq * 2 + tw.phase);
 
       ctx.globalAlpha = Math.max(0.1, Math.min(1, a));
       ctx.fillStyle = ink(bv);
@@ -272,7 +283,7 @@ export function initStarfield(canvas) {
         const p = (now - meteor.start) / 500;
         if (p >= 1) {
           meteor = null;
-          nextMeteorAt = now + 25000 + Math.random() * 20000;
+          nextMeteorAt = now + 14000 + Math.random() * 16000;
         } else {
           const travel = 260;
           const hx = meteor.x + meteor.dx * travel * p;

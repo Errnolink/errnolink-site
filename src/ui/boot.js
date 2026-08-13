@@ -7,6 +7,7 @@
  */
 
 import { CATALOG_SIZE } from "../data/stars.js";
+import { runGlitch } from "./reveal.js";
 
 const SESSION_KEY = "errnolink:boot";
 
@@ -127,7 +128,7 @@ export function runBoot(fx) {
     timers.push(
       setTimeout(() => {
         overlay.classList.add("boot--dim", "boot--stamped");
-        document.getElementById("boot-stamp")?.classList.add("gl-run");
+        runGlitch(document.getElementById("boot-stamp"));
       }, t)
     );
 

@@ -53,32 +53,74 @@
   animation: sweep-x var(--t-sweep) linear infinite;
 }
 
-/* Ticks sit 1:1 under the bars, so the gap must match the bar gap. */
-.bars__axis {
-  display: flex;
-  gap: 4px;
-  padding: 0 2px;
-  margin-top: 0.4rem;
+/* ── Per-object braille tracks, in btop's per-core layout ──────────────── */
+
+.cores {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.75rem 0.6rem;
+  background: var(--well);
+  border: var(--hairline) solid var(--border);
+}
+
+.core {
+  display: grid;
+  grid-template-columns: 2.5ch minmax(0, 15ch) 1fr 4ch;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.core__id {
   color: var(--text-faint);
 }
 
-.bars__tick {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.1rem;
+.core__name {
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.core__graph {
+  margin: 0;
   min-width: 0;
+  overflow: hidden;
+  font-family: var(--font-braille);
+  font-size: 13px;
+  line-height: 1.05;
+  letter-spacing: 0;
+  white-space: pre;
+  color: var(--ramp-1);
 }
 
-.bars__tick-id {
-  font-size: var(--size-orn);
-  letter-spacing: 0.1em;
-}
+.core__graph[data-level="0"] { color: var(--ramp-0); }
+.core__graph[data-level="1"] { color: var(--ramp-1); }
+.core__graph[data-level="2"] { color: var(--ramp-2); }
+.core__graph[data-level="3"] { color: var(--ramp-3); }
+.core__graph[data-level="4"] { color: var(--ramp-4); }
+.core__graph[data-level="5"] { color: var(--ramp-5); }
 
-.bars__tick-n {
+.core__count {
+  text-align: right;
   color: var(--cyan);
   font-size: var(--size-label);
+}
+
+.cores__axis {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  color: var(--text-faint);
+}
+
+/* The one sweep loop on the page rides the axis under the tracks. */
+.cores__sweep-host {
+  position: relative;
+  flex: 1;
+  height: 1px;
+  overflow: hidden;
+  background: var(--border);
 }
 
 /* ── Event log ─────────────────────────────────────────────────────────── */
