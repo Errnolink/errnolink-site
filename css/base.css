@@ -95,6 +95,9 @@ canvas {
    reads as instrument panels bolted over a window. */
 .section {
   padding-block: clamp(3rem, 8vh, 5.5rem);
+  /* The topbar is sticky, so an anchor jump would otherwise park the
+     section heading underneath it. */
+  scroll-margin-top: calc(var(--topbar-h) + 1.5rem);
 }
 
 .sr-only {

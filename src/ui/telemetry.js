@@ -5,7 +5,7 @@
 
 import { ISS_POLL_MS, ISS_URL } from "../config.js";
 import { moonPhase } from "../data/astro.js";
-import { activityBuckets, rampLevel } from "../data/normalize.js";
+import { feedSince, pushesByRepo, rampLevel } from "../data/normalize.js";
 import { CATALOG_SIZE } from "../data/stars.js";
 import { state } from "../state.js";
 import { setValue } from "./reveal.js";
@@ -13,6 +13,8 @@ import { setValue } from "./reveal.js";
 const KIND_CLASS = {
   PUSH: "log__kind--push",
   "NEW OBJECT": "log__kind--create",
+  BRANCH: "log__kind--create",
+  TAG: "log__kind--create",
   PURGE: "log__kind--delete",
 };
 
@@ -42,33 +44,51 @@ function renderLog() {
 
 function renderActivity() {
   const wrap = document.getElementById("activity-bars");
+  const axis = document.getElementById("activity-axis");
   const total = document.getElementById("activity-total");
-  if (!wrap) return;
+  if (!wrap || !state.repos.length) return;
 
-  const buckets = activityBuckets(state.events);
-  const max = Math.max(...buckets, 1);
-  const sum = buckets.reduce((a, b) => a + b, 0);
+  const rows = pushesByRepo(state.events, state.repos);
+  const max = Math.max(...rows.map((r) => r.count), 1);
+  const sum = rows.reduce((a, r) => a + r.count, 0);
 
   const sweep = wrap.querySelector(".bars__sweep");
-  const frag = document.createDocumentFragment();
+  const bars = document.createDocumentFragment();
+  const labels = document.createDocumentFragment();
 
-  buckets.forEach((value, i) => {
+  rows.forEach((row, i) => {
     const bar = el("div", "bars__bar");
-    bar.style.setProperty("--h", `${Math.max(3, Math.round((value / max) * 100))}%`);
+    bar.style.setProperty("--h", `${Math.max(3, Math.round((row.count / max) * 100))}%`);
     bar.style.setProperty("--i", String(i));
-    bar.dataset.level = String(rampLevel(value, max));
-    bar.title = `week -${11 - i}: ${value} commit${value === 1 ? "" : "s"}`;
-    frag.append(bar);
+    bar.dataset.level = String(rampLevel(row.count, max));
+    bar.title = `${row.repo}: ${row.count} push${row.count === 1 ? "" : "es"}`;
+    bars.append(bar);
+
+    const tick = el("span", "bars__tick");
+    tick.append(
+      el("span", "bars__tick-id", state.repos[i].designation.replace("OBJ-", "")),
+      el("span", "bars__tick-n", String(row.count))
+    );
+    labels.append(tick);
   });
 
-  wrap.replaceChildren(frag);
+  wrap.replaceChildren(bars);
   if (sweep) wrap.append(sweep);
+  if (axis) axis.replaceChildren(labels);
 
   wrap.setAttribute(
     "aria-label",
-    `Commit activity over the last twelve weeks: ${sum} commits in the public event feed.`
+    `Pushes per tracked object in the public event feed: ${rows
+      .map((r) => `${r.repo} ${r.count}`)
+      .join(", ")}.`
   );
-  if (total) total.textContent = `${sum} COMMITS / FEED WINDOW`;
+
+  const since = feedSince(state.events);
+  if (total) {
+    total.textContent = since
+      ? `${sum} PUSHES / SINCE ${since.toISOString().slice(0, 10)}`
+      : `${sum} PUSHES`;
+  }
 }
 
 function renderAstro() {

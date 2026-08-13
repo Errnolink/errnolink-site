@@ -53,11 +53,32 @@
   animation: sweep-x var(--t-sweep) linear infinite;
 }
 
+/* Ticks sit 1:1 under the bars, so the gap must match the bar gap. */
 .bars__axis {
   display: flex;
-  justify-content: space-between;
+  gap: 4px;
+  padding: 0 2px;
   margin-top: 0.4rem;
   color: var(--text-faint);
+}
+
+.bars__tick {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.bars__tick-id {
+  font-size: var(--size-orn);
+  letter-spacing: 0.1em;
+}
+
+.bars__tick-n {
+  color: var(--cyan);
+  font-size: var(--size-label);
 }
 
 /* ── Event log ─────────────────────────────────────────────────────────── */

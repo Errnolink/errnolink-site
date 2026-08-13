@@ -19,6 +19,11 @@
     padding-block: 0.5rem;
   }
 
+  /* The topbar wraps to three rows here, so anchors need more clearance. */
+  .section {
+    scroll-margin-top: 7rem;
+  }
+
   .topbar__clocks {
     order: 3;
     width: 100%;

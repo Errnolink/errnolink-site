@@ -66,6 +66,7 @@ const EVENT_KINDS = {
   PushEvent: "PUSH",
   CreateEvent: "NEW OBJECT",
   DeleteEvent: "PURGE",
+  MemberEvent: "CREW",
   WatchEvent: "STAR",
   ForkEvent: "FORK",
   IssuesEvent: "ISSUE",
@@ -74,17 +75,32 @@ const EVENT_KINDS = {
   PublicEvent: "DECLASSIFIED",
 };
 
+/**
+ * The public events feed carries no commit counts — GitHub's payload for an
+ * unauthenticated PushEvent has neither `size` nor a `commits` array, only
+ * the ref and the before/head SHAs. So the deck counts what the feed
+ * actually reports: pushes, and the branch each one landed on.
+ */
 export function normalizeEvent(raw) {
   const repo = (raw.repo?.name || "").split("/").pop() || "unknown";
-  const kind = EVENT_KINDS[raw.type] ?? "EVENT";
+  const ref = String(raw.payload?.ref || "").replace(/^refs\/(heads|tags)\//, "");
+  const on = (name) => (ref ? `${name} ▸ ${ref}` : name);
 
+  let kind = EVENT_KINDS[raw.type] ?? "EVENT";
   let detail = repo;
+
   if (raw.type === "PushEvent") {
-    const n = raw.payload?.size ?? raw.payload?.commits?.length ?? 0;
-    detail = `${repo} — ${n} commit${n === 1 ? "" : "s"}`;
+    detail = on(repo);
   } else if (raw.type === "CreateEvent") {
-    const what = raw.payload?.ref_type === "repository" ? repo : `${repo} / ${raw.payload?.ref ?? ""}`;
-    detail = what;
+    const what = raw.payload?.ref_type;
+    if (what === "repository") {
+      detail = repo;
+    } else {
+      kind = what === "tag" ? "TAG" : "BRANCH";
+      detail = on(repo);
+    }
+  } else if (raw.type === "DeleteEvent") {
+    detail = on(repo);
   }
 
   return {
@@ -93,7 +109,7 @@ export function normalizeEvent(raw) {
     repo,
     at: raw.created_at,
     detail,
-    commits: raw.type === "PushEvent" ? (raw.payload?.size ?? 0) : 0,
+    push: raw.type === "PushEvent" ? 1 : 0,
   };
 }
 
@@ -102,26 +118,29 @@ export function normalizeEvents(rawList) {
 }
 
 /**
- * Twelve weekly commit buckets ending this week.
+ * Pushes per repository, from the public event feed.
  *
- * The public events feed reaches back about 90 days, which is very nearly
- * the window — weeks with no surviving events read as zero, which is honest:
- * the feed is the only public commit signal without authentication.
+ * Deliberately not a time series. The unauthenticated feed returns only the
+ * last thirty events, which for an active week reach back about two days —
+ * a twelve-week chart drawn from it is ten empty columns that look like
+ * inactivity but are really just the edge of the data. Distribution across
+ * the tracked objects is something this feed can actually answer.
+ *
+ * @returns {{repo:string, count:number}[]} ordered by the caller's repo list
  */
-export function activityBuckets(events, now = new Date()) {
-  const WEEKS = 12;
-  const weekMs = 7 * 24 * 60 * 60 * 1000;
-  const buckets = new Array(WEEKS).fill(0);
-  const end = now.getTime();
-
+export function pushesByRepo(events, repos) {
+  const counts = new Map();
   for (const ev of events) {
-    if (!ev.commits) continue;
-    const age = end - new Date(ev.at).getTime();
-    if (age < 0) continue;
-    const idx = WEEKS - 1 - Math.floor(age / weekMs);
-    if (idx >= 0 && idx < WEEKS) buckets[idx] += ev.commits;
+    if (!ev.push) continue;
+    counts.set(ev.repo, (counts.get(ev.repo) ?? 0) + ev.push);
   }
-  return buckets;
+  return repos.map((r) => ({ repo: r.name, count: counts.get(r.name) ?? 0 }));
+}
+
+/** Oldest instant the feed still covers — the honest edge of the window. */
+export function feedSince(events) {
+  const times = events.map((e) => new Date(e.at).getTime()).filter((t) => !Number.isNaN(t));
+  return times.length ? new Date(Math.min(...times)) : null;
 }
 
 /** Map a bucket onto the six-step severity ramp — magnitude, not judgement. */

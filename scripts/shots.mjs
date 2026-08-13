@@ -47,11 +47,19 @@ for (const id of IDS) {
   console.log(`  shot  #${id}`);
 }
 
-// A mobile pass, same routine.
+// A mobile pass, per section. A full-page capture is not used here: it
+// stitches, which duplicates the sticky topbar and re-triggers reveal
+// animations mid-capture, producing artefacts that look like bugs.
 await page.setViewportSize({ width: 390, height: 844 });
 await page.waitForTimeout(400);
-await page.screenshot({ path: resolve(OUT, "mobile-full.png"), fullPage: true });
-console.log("  shot  mobile-full");
+for (const id of IDS) {
+  const el = page.locator(`#${id}`);
+  if ((await el.count()) === 0) continue;
+  await el.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(500);
+  await el.screenshot({ path: resolve(OUT, `mobile-${id}.png`) });
+  console.log(`  shot  mobile/#${id}`);
+}
 
 console.log(errors.length ? `\nERRORS:\n${errors.join("\n")}` : "\nno page errors");
 console.log(`shots → ${OUT}`);

@@ -121,10 +121,10 @@
               <div class="datalist__row"><dt class="label">Designation</dt><dd class="value" id="d-login">Errnolink</dd></div>
               <div class="datalist__row"><dt class="label">Location</dt><dd class="value" id="d-location">INDIA</dd></div>
               <div class="datalist__row"><dt class="label">Member since</dt><dd class="value" id="d-since">2021-04-22</dd></div>
-              <div class="datalist__row"><dt class="label">Mission day</dt><dd class="value value--hot" id="d-missionday">1939</dd></div>
+              <div class="datalist__row"><dt class="label">Mission day</dt><dd class="value value--hot" id="d-missionday">1938</dd></div>
               <div class="datalist__row"><dt class="label">Tracked objects</dt><dd class="value" id="d-repos">5</dd></div>
               <div class="datalist__row"><dt class="label">Followers</dt><dd class="value" id="d-followers">4</dd></div>
-              <div class="datalist__row"><dt class="label">Commits logged</dt><dd class="value" id="d-commits">88</dd></div>
+              <div class="datalist__row"><dt class="label">Commits logged</dt><dd class="value" id="d-commits">88+</dd></div>
             </dl>
           </div>
         </div>
@@ -265,26 +265,25 @@
         <div class="panel chamfer telemetry__activity">
           <div class="panel__head">
             <span class="led led--nominal"></span>
-            <span class="panel__title label">Commit activity &mdash; 12 week window</span>
+            <span class="panel__title label">Activity by object &mdash; public event feed</span>
             <span class="panel__meta label" id="activity-total">&mdash;</span>
           </div>
           <div class="panel__body">
-            <div class="bars" id="activity-bars" role="img" aria-label="Commit activity over the last twelve weeks">
-              <div class="bars__bar" style="--h:18%; --i:0"></div>
-              <div class="bars__bar" style="--h:32%; --i:1"></div>
-              <div class="bars__bar" style="--h:12%; --i:2"></div>
-              <div class="bars__bar" style="--h:44%; --i:3"></div>
-              <div class="bars__bar" style="--h:26%; --i:4"></div>
-              <div class="bars__bar" style="--h:58%; --i:5"></div>
-              <div class="bars__bar" style="--h:37%; --i:6"></div>
-              <div class="bars__bar" style="--h:22%; --i:7"></div>
-              <div class="bars__bar" style="--h:64%; --i:8"></div>
-              <div class="bars__bar" style="--h:48%; --i:9"></div>
-              <div class="bars__bar" style="--h:79%; --i:10"></div>
-              <div class="bars__bar" style="--h:100%; --i:11"></div>
+            <div class="bars" id="activity-bars" role="img" aria-label="Pushes per tracked object in the public event feed">
+              <div class="bars__bar" data-level="5" style="--h:100%; --i:0"></div>
+              <div class="bars__bar" data-level="3" style="--h:52%; --i:1"></div>
+              <div class="bars__bar" data-level="3" style="--h:48%; --i:2"></div>
+              <div class="bars__bar" data-level="4" style="--h:72%; --i:3"></div>
+              <div class="bars__bar" data-level="2" style="--h:28%; --i:4"></div>
               <span class="bars__sweep" aria-hidden="true"></span>
             </div>
-            <div class="bars__axis label"><span>-12W</span><span>NOW</span></div>
+            <div class="bars__axis label" id="activity-axis">
+              <span class="bars__tick"><span class="bars__tick-id">01</span><span class="bars__tick-n">9</span></span>
+              <span class="bars__tick"><span class="bars__tick-id">02</span><span class="bars__tick-n">5</span></span>
+              <span class="bars__tick"><span class="bars__tick-id">03</span><span class="bars__tick-n">4</span></span>
+              <span class="bars__tick"><span class="bars__tick-id">04</span><span class="bars__tick-n">6</span></span>
+              <span class="bars__tick"><span class="bars__tick-id">05</span><span class="bars__tick-n">2</span></span>
+            </div>
           </div>
         </div>
 
@@ -313,10 +312,10 @@
           </div>
           <div class="panel__body">
             <ol class="log" id="event-log">
-              <li class="log__line"><span class="log__time">2026-08-13</span><span class="log__kind log__kind--push">PUSH</span><span class="log__body">kanso &mdash; 3 commits</span></li>
-              <li class="log__line"><span class="log__time">2026-08-13</span><span class="log__kind log__kind--push">PUSH</span><span class="log__body">nerv-geo-monitor &mdash; 2 commits</span></li>
-              <li class="log__line"><span class="log__time">2026-08-13</span><span class="log__kind log__kind--push">PUSH</span><span class="log__body">cadence-planner &mdash; 1 commit</span></li>
-              <li class="log__line"><span class="log__time">2026-08-12</span><span class="log__kind log__kind--push">PUSH</span><span class="log__body">seele &mdash; 4 commits</span></li>
+              <li class="log__line"><span class="log__time">2026-08-13</span><span class="log__kind log__kind--push">PUSH</span><span class="log__body">nerv-geo-monitor &#9656; main</span></li>
+              <li class="log__line"><span class="log__time">2026-08-13</span><span class="log__kind log__kind--push">PUSH</span><span class="log__body">cadence-planner &#9656; preview-1</span></li>
+              <li class="log__line"><span class="log__time">2026-08-13</span><span class="log__kind log__kind--push">PUSH</span><span class="log__body">kanso &#9656; main</span></li>
+              <li class="log__line"><span class="log__time">2026-08-12</span><span class="log__kind log__kind--push">PUSH</span><span class="log__body">seele &#9656; refactor/ui-boundary</span></li>
               <li class="log__line"><span class="log__time">2026-08-12</span><span class="log__kind log__kind--create">NEW OBJECT</span><span class="log__body">omp-theme-visualiser</span></li>
             </ol>
           </div>

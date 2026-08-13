@@ -80,19 +80,22 @@ export const snapshotRepos = [
 
 /**
  * Representative recent activity, reflecting the captured 24 push / 5 create
- * event mix. Dates are real; commit counts are the recorded per-event sizes.
+ * event mix. Dates and branches are real. There are no commit counts here
+ * for the same reason there are none on the live path: GitHub's public event
+ * payload does not carry them.
  */
 export const snapshotEvents = [
-  { kind: "PUSH", type: "PushEvent", repo: "nerv-geo-monitor", at: "2026-08-13T01:19:27Z", detail: "nerv-geo-monitor — 2 commits", commits: 2 },
-  { kind: "PUSH", type: "PushEvent", repo: "omp-theme-visualiser", at: "2026-08-13T01:17:44Z", detail: "omp-theme-visualiser — 1 commit", commits: 1 },
-  { kind: "PUSH", type: "PushEvent", repo: "cadence-planner", at: "2026-08-13T01:17:36Z", detail: "cadence-planner — 1 commit", commits: 1 },
-  { kind: "PUSH", type: "PushEvent", repo: "kanso", at: "2026-08-13T01:00:30Z", detail: "kanso — 3 commits", commits: 3 },
-  { kind: "PUSH", type: "PushEvent", repo: "seele", at: "2026-08-12T18:39:07Z", detail: "seele — 4 commits", commits: 4 },
-  { kind: "NEW OBJECT", type: "CreateEvent", repo: "omp-theme-visualiser", at: "2026-08-12T17:02:11Z", detail: "omp-theme-visualiser", commits: 0 },
-  { kind: "PUSH", type: "PushEvent", repo: "kanso", at: "2026-08-11T22:14:03Z", detail: "kanso — 5 commits", commits: 5 },
-  { kind: "NEW OBJECT", type: "CreateEvent", repo: "kanso", at: "2026-08-08T09:41:52Z", detail: "kanso", commits: 0 },
-  { kind: "PUSH", type: "PushEvent", repo: "seele", at: "2026-08-05T20:33:19Z", detail: "seele — 6 commits", commits: 6 },
-  { kind: "PUSH", type: "PushEvent", repo: "nerv-geo-monitor", at: "2026-07-29T14:08:44Z", detail: "nerv-geo-monitor — 3 commits", commits: 3 },
-  { kind: "PUSH", type: "PushEvent", repo: "cadence-planner", at: "2026-07-21T11:27:36Z", detail: "cadence-planner — 4 commits", commits: 4 },
-  { kind: "NEW OBJECT", type: "CreateEvent", repo: "cadence-planner", at: "2026-07-14T08:55:02Z", detail: "cadence-planner", commits: 0 },
+  { kind: "PUSH", type: "PushEvent", repo: "nerv-geo-monitor", at: "2026-08-13T01:19:27Z", detail: "nerv-geo-monitor ▸ main", push: 1 },
+  { kind: "PUSH", type: "PushEvent", repo: "omp-theme-visualiser", at: "2026-08-13T01:17:44Z", detail: "omp-theme-visualiser ▸ main", push: 1 },
+  { kind: "PUSH", type: "PushEvent", repo: "cadence-planner", at: "2026-08-13T01:17:36Z", detail: "cadence-planner ▸ preview-1", push: 1 },
+  { kind: "PUSH", type: "PushEvent", repo: "kanso", at: "2026-08-13T01:00:30Z", detail: "kanso ▸ main", push: 1 },
+  { kind: "BRANCH", type: "CreateEvent", repo: "cadence-planner", at: "2026-08-12T22:41:10Z", detail: "cadence-planner ▸ exams-gradebook", push: 0 },
+  { kind: "PUSH", type: "PushEvent", repo: "seele", at: "2026-08-12T18:39:07Z", detail: "seele ▸ refactor/ui-boundary", push: 1 },
+  { kind: "NEW OBJECT", type: "CreateEvent", repo: "omp-theme-visualiser", at: "2026-08-12T17:02:11Z", detail: "omp-theme-visualiser", push: 0 },
+  { kind: "PUSH", type: "PushEvent", repo: "kanso", at: "2026-08-11T22:14:03Z", detail: "kanso ▸ main", push: 1 },
+  { kind: "NEW OBJECT", type: "CreateEvent", repo: "kanso", at: "2026-08-08T09:41:52Z", detail: "kanso", push: 0 },
+  { kind: "PUSH", type: "PushEvent", repo: "seele", at: "2026-08-05T20:33:19Z", detail: "seele ▸ main", push: 1 },
+  { kind: "PUSH", type: "PushEvent", repo: "nerv-geo-monitor", at: "2026-07-29T14:08:44Z", detail: "nerv-geo-monitor ▸ main", push: 1 },
+  { kind: "PUSH", type: "PushEvent", repo: "cadence-planner", at: "2026-07-21T11:27:36Z", detail: "cadence-planner ▸ main", push: 1 },
+  { kind: "NEW OBJECT", type: "CreateEvent", repo: "cadence-planner", at: "2026-07-14T08:55:02Z", detail: "cadence-planner", push: 0 },
 ];

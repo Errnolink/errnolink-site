@@ -31,7 +31,13 @@ function check(ok, label, detail = "") {
 /** Collect anything the page reports as broken, with a URL we can act on. */
 function instrument(page, errors) {
   page.on("console", (m) => {
-    if (m.type() === "error") errors.push(`console: ${m.text()}`);
+    if (m.type() !== "error") return;
+    // The browser's generic resource-failure line names no URL, so it cannot
+    // be acted on and cannot be exempted per host. The response listener
+    // below reports every HTTP failure *with* its URL, so nothing is lost by
+    // dropping this one — and a rate-limited GitHub stops being a red run.
+    if (/Failed to load resource/.test(m.text())) return;
+    errors.push(`console: ${m.text()}`);
   });
   page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`));
   page.on("response", (r) => {
