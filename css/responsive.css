@@ -1,0 +1,92 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE — last in the cascade.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 1100px) {
+  .telemetry {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .wrap {
+    width: min(1180px, 100% - 2rem);
+  }
+
+  .topbar {
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    padding-block: 0.5rem;
+  }
+
+  .topbar__clocks {
+    order: 3;
+    width: 100%;
+    margin-inline: 0;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .topbar__right {
+    margin-left: auto;
+  }
+
+  .topbar__cursor {
+    display: none;
+  }
+
+  .dossier__body {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .sec-head {
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+  }
+
+  .sec-head__rule {
+    order: 5;
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 620px) {
+  .topbar__gmst {
+    display: none;
+  }
+
+  .objects {
+    grid-template-columns: 1fr;
+  }
+
+  .hero__title {
+    gap: 0.5rem;
+  }
+
+  .hero__jp {
+    font-size: 0.75rem;
+  }
+
+  .hero__strip {
+    gap: 0.4rem 1rem;
+  }
+
+  .footer__bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .comms__body {
+    align-items: flex-start;
+  }
+}
+
+/* Touch devices get no hover state worth animating — but focus-within still
+   drives the lock-on, so keyboard users keep it. */
+@media (hover: none) {
+  .tracked-object:hover {
+    transform: none;
+  }
+}

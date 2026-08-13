@@ -1,0 +1,112 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   TELEMETRY — activity bars, observation readouts, event log.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.telemetry {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.telemetry__log {
+  grid-column: 1 / -1;
+}
+
+/* ── Commit activity ───────────────────────────────────────────────────── */
+.bars {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 130px;
+  padding: 0 2px;
+  background: var(--well);
+  border: var(--hairline) solid var(--border);
+}
+
+.bars__bar {
+  flex: 1;
+  height: var(--h, 10%);
+  min-height: 2px;
+  background: var(--ramp-0);
+  transform-origin: bottom center;
+}
+
+/* The ramp reads as magnitude here, not judgement: a hot week is hot, not bad. */
+.bars__bar[data-level="0"] { background: var(--ramp-0); }
+.bars__bar[data-level="1"] { background: var(--ramp-1); }
+.bars__bar[data-level="2"] { background: var(--ramp-2); }
+.bars__bar[data-level="3"] { background: var(--ramp-3); }
+.bars__bar[data-level="4"] { background: var(--ramp-4); }
+.bars__bar[data-level="5"] { background: var(--ramp-5); }
+
+/* The one sweep loop on the page. */
+.bars__sweep {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 1px;
+  background: var(--cyan);
+  opacity: 0.5;
+  animation: sweep-x var(--t-sweep) linear infinite;
+}
+
+.bars__axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.4rem;
+  color: var(--text-faint);
+}
+
+/* ── Event log ─────────────────────────────────────────────────────────── */
+.log {
+  display: grid;
+  gap: 0.2rem;
+  max-height: 260px;
+  overflow-y: auto;
+  font-size: 0.8125rem;
+}
+
+.log__line {
+  display: flex;
+  align-items: baseline;
+  gap: 1ch;
+  padding: 0.2rem 0.35rem;
+  border-bottom: var(--hairline) dotted var(--border);
+}
+
+.log__line:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.log__time {
+  flex: none;
+  color: var(--text-faint);
+  font-size: var(--size-label);
+}
+
+.log__kind {
+  flex: none;
+  min-width: 11ch;
+  font-size: var(--size-label);
+  letter-spacing: var(--track-label);
+}
+
+.log__kind--push { color: var(--success); }
+.log__kind--create { color: var(--cyan); }
+.log__kind--delete { color: var(--danger); }
+.log__kind--other { color: var(--text-dim); }
+
+.log__body {
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Observation deck readouts ─────────────────────────────────────────── */
+.telemetry__astro .datalist__row dd {
+  font-variant-numeric: tabular-nums;
+}

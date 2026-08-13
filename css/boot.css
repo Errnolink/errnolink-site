@@ -1,0 +1,165 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   BOOT OVERLAY + HERO
+
+   The cold open runs at most once per session, is skippable by any key or
+   click, and never runs at all under reduced motion or FX off.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-boot);
+  background: var(--bg);
+  display: grid;
+  place-items: center;
+}
+
+.boot[hidden] {
+  display: none;
+}
+
+.boot__inner {
+  width: min(680px, 90vw);
+}
+
+.boot__log {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.7;
+  color: var(--text-2);
+  white-space: pre-wrap;
+  transition: opacity var(--t-tick) var(--ease-mech);
+}
+
+.boot--dim .boot__log {
+  opacity: 0.4;
+}
+
+.boot__log .ok { color: var(--success); }
+.boot__log .num { color: var(--cyan); }
+.boot__log .caret { color: var(--primary); }
+
+.boot__cursor {
+  animation: cursor-blink var(--t-blink) step-end infinite;
+}
+
+.boot__stamp {
+  margin-top: 2rem;
+  font-family: var(--font-stamp);
+  font-size: clamp(2.5rem, 9vw, 5rem);
+  letter-spacing: var(--track-stamp);
+  transform: var(--compress);
+  transform-origin: left center;
+  line-height: 1;
+  color: var(--text);
+  text-shadow: 0 0 18px rgba(255, 152, 48, 0.45);
+  opacity: 0;
+}
+
+.boot--stamped .boot__stamp {
+  opacity: 1;
+}
+
+.boot__skip {
+  position: absolute;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  font-size: var(--size-label);
+  letter-spacing: var(--track-label);
+  color: var(--text-faint);
+  transition: color var(--t-exit) var(--ease-mech);
+}
+
+.boot__skip:hover,
+.boot__skip:focus-visible {
+  color: var(--primary);
+}
+
+.boot--out {
+  animation: boot-out var(--t-overlay-out) var(--ease-mech) both;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HERO — no panel behind it. The wordmark floats over the window.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.hero {
+  min-height: calc(100svh - var(--topbar-h));
+  display: flex;
+  align-items: center;
+  padding-block: clamp(2rem, 6vh, 4rem);
+}
+
+.hero__wrap {
+  position: relative;
+}
+
+.hero__title {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.hero__stamp {
+  font-family: var(--font-stamp);
+  font-size: var(--size-hero);
+  letter-spacing: var(--track-stamp);
+  transform: var(--compress);
+  transform-origin: left center;
+  line-height: 0.95;
+  font-weight: 400;
+  color: var(--text);
+  /* The one sanctioned wordmark halo. There is no third glow on this site. */
+  text-shadow: 0 0 18px rgba(255, 152, 48, 0.45);
+}
+
+.hero__jp {
+  writing-mode: vertical-rl;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  letter-spacing: 0.25em;
+}
+
+.hero__sub {
+  margin-top: 1rem;
+  font-size: var(--size-label);
+  letter-spacing: 0.15em;
+  color: var(--text-dim);
+}
+
+.hero__strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-top: 2rem;
+  padding: 0.7rem 1rem;
+  /* The one place glass is earned: this chip sits over live content. */
+  background: rgba(10, 10, 12, 0.72);
+  backdrop-filter: blur(6px);
+  border: var(--hairline) solid var(--border);
+  width: fit-content;
+  max-width: 100%;
+}
+
+.hero__strip .led {
+  vertical-align: middle;
+}
+
+.hero__cue {
+  display: inline-block;
+  margin-top: 2.5rem;
+  font-size: var(--size-label);
+  letter-spacing: var(--track-label);
+  color: var(--text-dim);
+  animation: pulse var(--t-pulse) var(--ease-mech) infinite;
+}
+
+.hero__cue::after {
+  content: none;
+}
+
+.hero__cue:hover,
+.hero__cue:focus-visible {
+  color: var(--primary);
+}

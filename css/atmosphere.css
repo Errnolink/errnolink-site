@@ -1,0 +1,118 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   ATMOSPHERE — the sky canvas underneath, and the CRT layer on top.
+
+   The atmosphere is decoration and knows it: pointer-events none, aria-hidden,
+   and the first thing removed when the reader asks for less.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── z0: the view outside the window ───────────────────────────────────── */
+#sky {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: var(--z-sky);
+  background: var(--bg);
+  pointer-events: none;
+}
+
+/* ── z900: scanlines, grain, vignette ──────────────────────────────────── */
+.atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-atmosphere);
+  pointer-events: none;
+}
+
+.atmosphere > * {
+  position: absolute;
+  inset: 0;
+}
+
+/* The period is pinned in background-size. Without that pin a scroll
+   animation on this layer resolves to zero travel and silently does nothing
+   — the bug is inherited from the parent design system, so it is written
+   down here even though this site keeps the scanlines static. */
+.atmosphere__scanlines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.06) 0 1px,
+    transparent 1px 4px
+  );
+  background-size: 100% 4px;
+}
+
+.atmosphere__grain {
+  opacity: 0.02;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.atmosphere__vignette {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 55%,
+    rgba(0, 0, 0, 0.45) 100%
+  );
+}
+
+/* A reader who has asked for higher contrast is not asking for film grain. */
+@media (prefers-contrast: more) {
+  .atmosphere__scanlines,
+  .atmosphere__grain {
+    display: none;
+  }
+}
+
+html[data-fx="off"] .atmosphere__scanlines,
+html[data-fx="off"] .atmosphere__grain {
+  display: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HAZARD STRIPES — static everywhere except one animated pair, at the
+   footer boundary.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.hazard {
+  height: 8px;
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--primary) 0 6px,
+    var(--bg) 6px 12px
+  );
+  opacity: 0.55;
+}
+
+.hazard--animated {
+  animation: hazard-crawl var(--t-crawl) linear infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MARQUEE — the one ticker. Pauses on hover and dies with the FX toggle,
+   so the "stop it" affordance exists twice.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.marquee {
+  overflow: hidden;
+  border-block: var(--hairline) solid var(--border);
+  background: var(--well);
+  padding-block: 0.4rem;
+}
+
+.marquee__track {
+  display: flex;
+  width: max-content;
+  animation: marquee-run var(--marquee-dur, 40s) linear infinite;
+}
+
+.marquee:hover .marquee__track,
+.marquee:focus-within .marquee__track {
+  animation-play-state: paused;
+}
+
+.marquee__run {
+  font-size: var(--size-label);
+  letter-spacing: var(--track-label);
+  color: var(--text-dim);
+  white-space: nowrap;
+}

@@ -1,0 +1,25 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   COMMS — one channel, no form, no address to scrape.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.comms__body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.comms__line {
+  color: var(--text-2);
+  max-width: 56ch;
+}
+
+.comms__btn {
+  min-height: 38px;
+  flex: none;
+}
+
+.comms__btn::after {
+  content: none;
+}

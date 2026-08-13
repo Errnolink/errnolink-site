@@ -1,0 +1,199 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   TRACKED OBJECTS — the repo grid, and the lock-on.
+
+   Hovering a card acquires it: four corner brackets fly outward to the true
+   corners, the frame goes orange, a single cyan scan crosses once. The card
+   itself lifts 2px. No scale, no bloom.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.objects {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 1.25rem;
+}
+
+.tracked-object {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem 1.1rem 1.1rem;
+  background: var(--panel);
+  border: var(--hairline) solid var(--border);
+  transition:
+    border-color var(--t-exit) var(--ease-mech),
+    transform var(--t-exit) var(--ease-mech);
+}
+
+.tracked-object:hover,
+.tracked-object:focus-within {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  transition:
+    border-color var(--t-tick) var(--ease-out),
+    transform var(--t-tick) var(--ease-out);
+}
+
+/* ── The one-shot scan sweep ───────────────────────────────────────────── */
+.tracked-object::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 60px;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(32, 240, 255, 0.06),
+    transparent
+  );
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.tracked-object:hover::after,
+.tracked-object:focus-within::after {
+  opacity: 1;
+  animation: sweep-x 300ms linear 1 both;
+}
+
+/* ── Targeting brackets ────────────────────────────────────────────────── */
+.brackets {
+  position: absolute;
+  inset: 6px;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.brackets i {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  opacity: 0;
+  border: 0 solid var(--primary);
+  transition:
+    opacity var(--t-exit) var(--ease-mech),
+    transform var(--t-exit) var(--ease-mech);
+}
+
+.brackets i:nth-child(1) {
+  top: 0; left: 0;
+  border-top-width: 2px; border-left-width: 2px;
+  transform: translate(10px, 10px);
+}
+.brackets i:nth-child(2) {
+  top: 0; right: 0;
+  border-top-width: 2px; border-right-width: 2px;
+  transform: translate(-10px, 10px);
+}
+.brackets i:nth-child(3) {
+  bottom: 0; left: 0;
+  border-bottom-width: 2px; border-left-width: 2px;
+  transform: translate(10px, -10px);
+}
+.brackets i:nth-child(4) {
+  bottom: 0; right: 0;
+  border-bottom-width: 2px; border-right-width: 2px;
+  transform: translate(-10px, -10px);
+}
+
+.tracked-object:hover .brackets i,
+.tracked-object:focus-within .brackets i {
+  opacity: 1;
+  transform: translate(0, 0);
+  transition:
+    opacity var(--t-tick) var(--ease-out),
+    transform var(--t-tick) var(--ease-out);
+}
+
+/* ── TRK LOCK chip ─────────────────────────────────────────────────────── */
+.obj__lock {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 4;
+  font-size: var(--size-orn);
+  color: var(--primary);
+  opacity: 0;
+  transition: opacity var(--t-exit) var(--ease-mech);
+}
+
+.tracked-object:hover .obj__lock,
+.tracked-object:focus-within .obj__lock {
+  opacity: 1;
+  transition: opacity var(--t-tick) var(--ease-out) var(--t-tick);
+}
+
+/* ── Card content ──────────────────────────────────────────────────────── */
+.obj__head {
+  display: flex;
+  align-items: center;
+  gap: 0.75ch;
+}
+
+.obj__desig {
+  color: var(--text-faint);
+  flex: none;
+}
+
+.obj__name {
+  font-family: var(--font-stamp);
+  font-size: 1.35rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  transform: var(--compress);
+  transform-origin: left center;
+  line-height: 1;
+  color: var(--primary);
+  /* Long repo names must not push the LED off the card. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.obj__head .led {
+  margin-left: auto;
+}
+
+.obj__class {
+  color: var(--text-faint);
+}
+
+.obj__desc {
+  color: var(--text-2);
+  font-size: 0.8125rem;
+  flex: 1;
+}
+
+.obj__foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
+  padding-top: 0.6rem;
+  border-top: var(--hairline) dotted var(--border);
+}
+
+.obj__foot .readout__value {
+  transition: color var(--t-exit) var(--ease-mech);
+}
+
+.tracked-object:hover .obj__foot .readout__value,
+.tracked-object:focus-within .obj__foot .readout__value {
+  color: var(--primary-hot);
+  transition: color var(--t-tick) var(--ease-out);
+}
+
+.obj__links {
+  display: flex;
+  gap: 1.25rem;
+  font-size: var(--size-label);
+  letter-spacing: var(--track-label);
+}
+
+.obj__uplink {
+  color: var(--success);
+}

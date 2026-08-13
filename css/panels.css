@@ -1,0 +1,183 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   PANELS & CHROME — topbar, panel shell, section headers, footer.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Topbar ────────────────────────────────────────────────────────────── */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-topbar);
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  min-height: var(--topbar-h);
+  padding-inline: clamp(0.75rem, 2vw, 1.5rem);
+  background: var(--bg);
+  border-bottom: var(--hairline) solid var(--border);
+}
+
+.topbar__brand {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex: none;
+}
+
+.brand__name {
+  font-size: var(--size-stamp);
+  color: var(--primary);
+}
+
+.brand__sub {
+  color: var(--text-faint);
+}
+
+.topbar__clocks {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-inline: auto;
+}
+
+.topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: none;
+}
+
+.topbar__cursor .readout__value {
+  color: var(--text-faint);
+}
+
+.fx-toggle {
+  min-height: 24px;
+  padding-inline: 0.6rem;
+}
+
+.fx-toggle[aria-pressed="false"] {
+  color: var(--text-faint);
+}
+
+.feed {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5ch;
+}
+
+.feed__text {
+  font-size: var(--size-label);
+  letter-spacing: var(--track-label);
+  color: var(--text-dim);
+}
+
+.feed--live .feed__text { color: var(--success); }
+.feed--cached .feed__text { color: var(--warning); }
+.feed--snapshot .feed__text { color: var(--primary-dim); }
+
+/* ── Section header ────────────────────────────────────────────────────── */
+.sec-head {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.sec-head__title {
+  font-size: var(--size-stamp-lg);
+  color: var(--primary);
+  flex: none;
+}
+
+.sec-head__jp {
+  font-size: 0.9rem;
+  flex: none;
+}
+
+.sec-head__rule {
+  flex: 1;
+  height: var(--hairline);
+  background: linear-gradient(to right, var(--border-hi), transparent);
+  transform-origin: left center;
+}
+
+.sec-head__idx {
+  flex: none;
+  color: var(--text-faint);
+}
+
+/* ── Panel ─────────────────────────────────────────────────────────────── */
+.panel {
+  background: var(--panel);
+  border: var(--hairline) solid var(--border);
+}
+
+.panel__head {
+  display: flex;
+  align-items: center;
+  gap: 0.75ch;
+  padding: 0.5rem 0.9rem;
+  background: var(--panel-2);
+  border-bottom: var(--hairline) solid var(--border);
+}
+
+.panel__title {
+  color: var(--text-2);
+}
+
+.panel__meta {
+  margin-left: auto;
+  color: var(--text-faint);
+}
+
+.panel__body {
+  padding: 1.1rem;
+}
+
+/* ── Data list — the label/value table used in several panels ──────────── */
+.datalist {
+  margin: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.datalist__row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75ch;
+  border-bottom: var(--hairline) dotted var(--border);
+  padding-bottom: 0.3rem;
+}
+
+.datalist__row dt {
+  flex: none;
+}
+
+.datalist__row dd {
+  margin: 0;
+  margin-left: auto;
+  font-size: var(--size-label);
+  text-align: right;
+}
+
+/* ── Footer ────────────────────────────────────────────────────────────── */
+.footer {
+  position: relative;
+  z-index: var(--z-chrome);
+  margin-top: clamp(3rem, 8vh, 5rem);
+  background: var(--bg);
+}
+
+.footer__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 1rem 1.5rem;
+  color: var(--text-faint);
+}
+
+.footer__mid {
+  font-family: var(--font-jp);
+  letter-spacing: 0.1em;
+}

@@ -1,0 +1,16 @@
+{
+  "name": "errnolink-site",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ERRNOLINK — orbital observation station. Personal site: a NERV-style observation deck over a real sky.",
+  "type": "module",
+  "scripts": {
+    "serve": "node scripts/serve.mjs",
+    "smoke": "node scripts/smoke.mjs",
+    "shots": "node scripts/shots.mjs",
+    "check:astro": "node scripts/check-astro.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.49.0"
+  }
+}

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en" data-fx="on">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ERRNOLINK // ORBITAL OBSERVATION STATION</title>
+<meta name="description" content="Errnolink — developer. An orbital observation deck tracking software objects, live GitHub telemetry and a real sky.">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23000'/><rect x='18' y='18' width='64' height='64' fill='none' stroke='%23ff9830' stroke-width='7'/><rect x='44' y='44' width='12' height='12' fill='%2320f0ff'/></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- Only ~19 Japanese glyphs are ever used on this page. The &text= subset
+     ships a few KB instead of the ~9MB full Shippori Mincho family. -->
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400&text=%E8%BB%8C%E9%81%93%E8%A6%B3%E6%B8%AC%E5%B1%80%E8%BF%BD%E8%B7%A1%E7%9B%AE%E6%A8%99%E9%80%9A%E4%BF%A1%E8%A8%98%E9%8C%B2%E6%8E%A5%E7%B6%9A%E7%A8%BC%E5%83%8D%E7%8A%B6%E6%B3%81&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<!-- ═══ z0 — THE VIEW OUTSIDE ═══════════════════════════════════════════ -->
+<canvas id="sky" aria-hidden="true"></canvas>
+
+<!-- ═══ z900 — ATMOSPHERE ══════════════════════════════════════════════ -->
+<div class="atmosphere" aria-hidden="true">
+  <div class="atmosphere__scanlines"></div>
+  <div class="atmosphere__grain"></div>
+  <div class="atmosphere__vignette"></div>
+</div>
+
+<!-- ═══ z1000 — COLD OPEN. Removed from the DOM once it has run. ═══════ -->
+<div id="boot" class="boot" hidden>
+  <div class="boot__inner">
+    <pre class="boot__log" id="boot-log" aria-hidden="true"></pre>
+    <div class="boot__stamp" id="boot-stamp" data-text="ERRNOLINK">ERRNOLINK</div>
+  </div>
+  <button type="button" class="boot__skip" id="boot-skip">[ SKIP ]</button>
+</div>
+
+<!-- ═══ z50 — TOPBAR ═══════════════════════════════════════════════════ -->
+<header class="topbar">
+  <div class="topbar__brand">
+    <span class="brand__name stamp">ERRNOLINK</span>
+    <span class="brand__sub label">Observation Deck</span>
+  </div>
+
+  <div class="topbar__clocks">
+    <span class="readout"><span class="readout__label">UTC</span><span class="readout__value" id="clock-utc">--:--:--</span></span>
+    <span class="readout"><span class="readout__label">JD</span><span class="readout__value" id="clock-jd">----------.-----</span></span>
+    <span class="readout topbar__gmst"><span class="readout__label">GMST</span><span class="readout__value" id="clock-gmst">--:--:--</span></span>
+  </div>
+
+  <div class="topbar__right">
+    <span class="readout readout--orn topbar__cursor"><span class="readout__label">CUR</span><span class="readout__value" id="cursor-readout">0000,0000</span></span>
+    <button type="button" class="btn fx-toggle" id="fx-toggle" aria-pressed="true">
+      FX <span id="fx-glyph" aria-hidden="true">▮</span>
+    </button>
+    <span class="feed">
+      <span class="led led--idle" id="feed-led"></span>
+      <span class="feed__text" id="feed-status">TELEMETRY: SNAPSHOT</span>
+    </span>
+  </div>
+</header>
+
+<main class="shell">
+
+  <!-- ═══ HERO ═════════════════════════════════════════════════════════ -->
+  <section id="hero" class="hero">
+    <div class="wrap hero__wrap">
+      <div class="hero__title">
+        <h1 class="hero__stamp stamp" id="hero-stamp" data-text="ERRNOLINK">ERRNOLINK</h1>
+        <span class="hero__jp jp" aria-hidden="true">軌道観測局</span>
+      </div>
+
+      <p class="hero__sub">ORBITAL OBSERVATION STATION // ERRNOLINK &mdash; 22.5&deg;N 79.0&deg;E &mdash; EST. 2021</p>
+
+      <div class="hero__strip">
+        <span class="readout"><span class="readout__label">GMST</span><span class="readout__value" id="hero-gmst">--:--:--</span></span>
+        <span class="readout"><span class="readout__label">Field</span><span class="readout__value">RA 05H36M DEC +00&deg;</span></span>
+        <span class="readout"><span class="readout__label">Catalog</span><span class="readout__value" id="hero-catalog">---</span></span>
+        <span class="readout"><span class="readout__label">Uplink</span><span class="readout__value"><span class="led led--idle" id="hero-led"></span></span></span>
+      </div>
+
+      <a class="hero__cue" href="#dossier" aria-label="Scroll to telemetry">&#9660; SCROLL FOR TELEMETRY</a>
+    </div>
+  </section>
+
+  <!-- ═══ DOSSIER ══════════════════════════════════════════════════════ -->
+  <section id="dossier" class="section">
+    <div class="wrap">
+      <header class="sec-head">
+        <h2 class="sec-head__title stamp" data-text="OPERATOR DOSSIER">OPERATOR DOSSIER</h2>
+        <span class="sec-head__jp jp" aria-hidden="true">稼働状況</span>
+        <span class="sec-head__rule"></span>
+        <span class="sec-head__idx label">SEC 01</span>
+      </header>
+
+      <div class="panel chamfer dossier">
+        <div class="panel__head">
+          <span class="led led--nominal"></span>
+          <span class="panel__title label">Operator Record</span>
+          <span class="panel__meta label" id="dossier-source">GITHUB / USERS / ERRNOLINK</span>
+        </div>
+
+        <div class="panel__body dossier__body">
+          <figure class="dossier__portrait">
+            <img id="dossier-avatar" src="https://avatars.githubusercontent.com/u/83027938?v=4" width="132" height="132"
+                 alt="Errnolink's GitHub avatar" loading="lazy" decoding="async">
+            <figcaption class="label">ID 83027938</figcaption>
+          </figure>
+
+          <div class="dossier__data">
+            <p class="dossier__bio">
+              Builds tactical, high-density interfaces &mdash; design systems, telemetry terminals and
+              desktop tools. Author of <strong>Kanso</strong>, an in-house design language distilled from
+              NERV-UI, Evangelion interface design, btop telemetry and cyberpunk chrome.
+            </p>
+
+            <dl class="datalist">
+              <div class="datalist__row"><dt class="label">Designation</dt><dd class="value" id="d-login">Errnolink</dd></div>
+              <div class="datalist__row"><dt class="label">Location</dt><dd class="value" id="d-location">INDIA</dd></div>
+              <div class="datalist__row"><dt class="label">Member since</dt><dd class="value" id="d-since">2021-04-22</dd></div>
+              <div class="datalist__row"><dt class="label">Mission day</dt><dd class="value value--hot" id="d-missionday">1939</dd></div>
+              <div class="datalist__row"><dt class="label">Tracked objects</dt><dd class="value" id="d-repos">5</dd></div>
+              <div class="datalist__row"><dt class="label">Followers</dt><dd class="value" id="d-followers">4</dd></div>
+              <div class="datalist__row"><dt class="label">Commits logged</dt><dd class="value" id="d-commits">88</dd></div>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ TRACKED OBJECTS ══════════════════════════════════════════════ -->
+  <section id="tracking" class="section">
+    <div class="wrap">
+      <header class="sec-head">
+        <h2 class="sec-head__title stamp" data-text="TRACKED OBJECTS">TRACKED OBJECTS</h2>
+        <span class="sec-head__jp jp" aria-hidden="true">追跡目標</span>
+        <span class="sec-head__rule"></span>
+        <span class="sec-head__idx label">SEC 02</span>
+      </header>
+
+      <ul class="objects" id="objects">
+
+        <li class="tracked-object chamfer" style="--i:0">
+          <span class="brackets" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <span class="obj__lock label" aria-hidden="true">TRK LOCK</span>
+          <div class="obj__head">
+            <span class="obj__desig label">OBJ-01</span>
+            <h3 class="obj__name stamp">KANSO</h3>
+            <span class="led led--nominal"></span>
+          </div>
+          <p class="obj__class label">Design language // TypeScript</p>
+          <p class="obj__desc">An in-house design language: tokens and 41 React components distilled from NERV-UI, Evangelion interface design, btop telemetry and cyberpunk chrome. Two design generations behind one attribute toggle.</p>
+          <div class="obj__foot">
+            <span class="readout"><span class="readout__label">Lang</span><span class="readout__value">TS</span></span>
+            <span class="readout"><span class="readout__label">&#9733;</span><span class="readout__value">0</span></span>
+            <span class="readout"><span class="readout__label">Contact</span><span class="readout__value">2026-08-13</span></span>
+          </div>
+          <div class="obj__links">
+            <a href="https://github.com/Errnolink/kanso" target="_blank" rel="noopener noreferrer" class="link-ext">SOURCE</a>
+          </div>
+        </li>
+
+        <li class="tracked-object chamfer" style="--i:1">
+          <span class="brackets" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <span class="obj__lock label" aria-hidden="true">TRK LOCK</span>
+          <div class="obj__head">
+            <span class="obj__desig label">OBJ-02</span>
+            <h3 class="obj__name stamp">SEELE</h3>
+            <span class="led led--nominal"></span>
+          </div>
+          <p class="obj__class label">Electron terminal // TypeScript</p>
+          <p class="obj__desc">NERV &times; cyberpunk media file scanner and viewer. Electron + React + TypeScript; a tactical control-room UI for browsing local image and video libraries.</p>
+          <div class="obj__foot">
+            <span class="readout"><span class="readout__label">Lang</span><span class="readout__value">TS</span></span>
+            <span class="readout"><span class="readout__label">&#9733;</span><span class="readout__value">0</span></span>
+            <span class="readout"><span class="readout__label">Contact</span><span class="readout__value">2026-08-12</span></span>
+          </div>
+          <div class="obj__links">
+            <a href="https://github.com/Errnolink/seele" target="_blank" rel="noopener noreferrer" class="link-ext">SOURCE</a>
+          </div>
+        </li>
+
+        <li class="tracked-object chamfer" style="--i:2">
+          <span class="brackets" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <span class="obj__lock label" aria-hidden="true">TRK LOCK</span>
+          <div class="obj__head">
+            <span class="obj__desig label">OBJ-03</span>
+            <h3 class="obj__name stamp">NERV-GEO-MONITOR</h3>
+            <span class="led led--nominal"></span>
+          </div>
+          <p class="obj__class label">Live terminal // JavaScript</p>
+          <p class="obj__desc">A real-time global monitoring terminal for air quality and atmospheric pollutants, built with a reactive NERV terminal interface and Open-Meteo telemetry.</p>
+          <div class="obj__foot">
+            <span class="readout"><span class="readout__label">Lang</span><span class="readout__value">JS</span></span>
+            <span class="readout"><span class="readout__label">&#9733;</span><span class="readout__value">0</span></span>
+            <span class="readout"><span class="readout__label">Contact</span><span class="readout__value">2026-08-13</span></span>
+          </div>
+          <div class="obj__links">
+            <a href="https://github.com/Errnolink/nerv-geo-monitor" target="_blank" rel="noopener noreferrer" class="link-ext">SOURCE</a>
+            <a href="https://errnolink.github.io/nerv-geo-monitor/" target="_blank" rel="noopener noreferrer" class="link-ext obj__uplink">LIVE UPLINK</a>
+          </div>
+        </li>
+
+        <li class="tracked-object chamfer" style="--i:3">
+          <span class="brackets" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <span class="obj__lock label" aria-hidden="true">TRK LOCK</span>
+          <div class="obj__head">
+            <span class="obj__desig label">OBJ-04</span>
+            <h3 class="obj__name stamp">CADENCE-PLANNER</h3>
+            <span class="led led--nominal"></span>
+          </div>
+          <p class="obj__class label">Planner // JavaScript</p>
+          <p class="obj__desc">A planning interface with its own complete design system &mdash; token-driven theming, a nine-effect registry, contrast-verified text tiers and a density scale.</p>
+          <div class="obj__foot">
+            <span class="readout"><span class="readout__label">Lang</span><span class="readout__value">JS</span></span>
+            <span class="readout"><span class="readout__label">&#9733;</span><span class="readout__value">0</span></span>
+            <span class="readout"><span class="readout__label">Contact</span><span class="readout__value">2026-08-13</span></span>
+          </div>
+          <div class="obj__links">
+            <a href="https://github.com/Errnolink/cadence-planner" target="_blank" rel="noopener noreferrer" class="link-ext">SOURCE</a>
+            <a href="https://cadence-planner-ui.vercel.app" target="_blank" rel="noopener noreferrer" class="link-ext obj__uplink">LIVE UPLINK</a>
+          </div>
+        </li>
+
+        <li class="tracked-object chamfer" style="--i:4">
+          <span class="brackets" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <span class="obj__lock label" aria-hidden="true">TRK LOCK</span>
+          <div class="obj__head">
+            <span class="obj__desig label">OBJ-05</span>
+            <h3 class="obj__name stamp">OMP-THEME-VISUALISER</h3>
+            <span class="led led--nominal"></span>
+          </div>
+          <p class="obj__class label">Visualiser // HTML</p>
+          <p class="obj__desc">A theme visualiser for inspecting palette and prompt configurations side by side.</p>
+          <div class="obj__foot">
+            <span class="readout"><span class="readout__label">Lang</span><span class="readout__value">HTML</span></span>
+            <span class="readout"><span class="readout__label">&#9733;</span><span class="readout__value">0</span></span>
+            <span class="readout"><span class="readout__label">Contact</span><span class="readout__value">2026-08-13</span></span>
+          </div>
+          <div class="obj__links">
+            <a href="https://github.com/Errnolink/omp-theme-visualiser" target="_blank" rel="noopener noreferrer" class="link-ext">SOURCE</a>
+          </div>
+        </li>
+
+      </ul>
+    </div>
+  </section>
+
+  <!-- ═══ TELEMETRY ════════════════════════════════════════════════════ -->
+  <section id="telemetry" class="section">
+    <div class="wrap">
+      <header class="sec-head">
+        <h2 class="sec-head__title stamp" data-text="TELEMETRY">TELEMETRY</h2>
+        <span class="sec-head__jp jp" aria-hidden="true">通信記録</span>
+        <span class="sec-head__rule"></span>
+        <span class="sec-head__idx label">SEC 03</span>
+      </header>
+
+      <div class="telemetry">
+
+        <div class="panel chamfer telemetry__activity">
+          <div class="panel__head">
+            <span class="led led--nominal"></span>
+            <span class="panel__title label">Commit activity &mdash; 12 week window</span>
+            <span class="panel__meta label" id="activity-total">&mdash;</span>
+          </div>
+          <div class="panel__body">
+            <div class="bars" id="activity-bars" role="img" aria-label="Commit activity over the last twelve weeks">
+              <div class="bars__bar" style="--h:18%; --i:0"></div>
+              <div class="bars__bar" style="--h:32%; --i:1"></div>
+              <div class="bars__bar" style="--h:12%; --i:2"></div>
+              <div class="bars__bar" style="--h:44%; --i:3"></div>
+              <div class="bars__bar" style="--h:26%; --i:4"></div>
+              <div class="bars__bar" style="--h:58%; --i:5"></div>
+              <div class="bars__bar" style="--h:37%; --i:6"></div>
+              <div class="bars__bar" style="--h:22%; --i:7"></div>
+              <div class="bars__bar" style="--h:64%; --i:8"></div>
+              <div class="bars__bar" style="--h:48%; --i:9"></div>
+              <div class="bars__bar" style="--h:79%; --i:10"></div>
+              <div class="bars__bar" style="--h:100%; --i:11"></div>
+              <span class="bars__sweep" aria-hidden="true"></span>
+            </div>
+            <div class="bars__axis label"><span>-12W</span><span>NOW</span></div>
+          </div>
+        </div>
+
+        <div class="panel chamfer telemetry__astro">
+          <div class="panel__head">
+            <span class="led led--nominal"></span>
+            <span class="panel__title label">Observation deck</span>
+          </div>
+          <div class="panel__body">
+            <dl class="datalist">
+              <div class="datalist__row"><dt class="label">Julian date</dt><dd class="value" id="a-jd">---</dd></div>
+              <div class="datalist__row"><dt class="label">Sidereal (GMST)</dt><dd class="value" id="a-gmst">---</dd></div>
+              <div class="datalist__row"><dt class="label">Lunar phase</dt><dd class="value" id="a-moon">---</dd></div>
+              <div class="datalist__row"><dt class="label">Illumination</dt><dd class="value" id="a-moonpct">---</dd></div>
+              <div class="datalist__row"><dt class="label">Catalog</dt><dd class="value" id="a-catalog">---</dd></div>
+              <div class="datalist__row"><dt class="label">ISS track</dt><dd class="value" id="a-iss">ACQUIRING&hellip;</dd></div>
+            </dl>
+          </div>
+        </div>
+
+        <div class="panel chamfer telemetry__log">
+          <div class="panel__head">
+            <span class="led led--nominal" id="log-led"></span>
+            <span class="panel__title label">Event log</span>
+            <span class="panel__meta label" id="log-source">SNAPSHOT</span>
+          </div>
+          <div class="panel__body">
+            <ol class="log" id="event-log">
+              <li class="log__line"><span class="log__time">2026-08-13</span><span class="log__kind log__kind--push">PUSH</span><span class="log__body">kanso &mdash; 3 commits</span></li>
+              <li class="log__line"><span class="log__time">2026-08-13</span><span class="log__kind log__kind--push">PUSH</span><span class="log__body">nerv-geo-monitor &mdash; 2 commits</span></li>
+              <li class="log__line"><span class="log__time">2026-08-13</span><span class="log__kind log__kind--push">PUSH</span><span class="log__body">cadence-planner &mdash; 1 commit</span></li>
+              <li class="log__line"><span class="log__time">2026-08-12</span><span class="log__kind log__kind--push">PUSH</span><span class="log__body">seele &mdash; 4 commits</span></li>
+              <li class="log__line"><span class="log__time">2026-08-12</span><span class="log__kind log__kind--create">NEW OBJECT</span><span class="log__body">omp-theme-visualiser</span></li>
+            </ol>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ COMMS ════════════════════════════════════════════════════════ -->
+  <section id="comms" class="section">
+    <div class="wrap">
+      <header class="sec-head">
+        <h2 class="sec-head__title stamp" data-text="COMMS">COMMS</h2>
+        <span class="sec-head__jp jp" aria-hidden="true">接続</span>
+        <span class="sec-head__rule"></span>
+        <span class="sec-head__idx label">SEC 04</span>
+      </header>
+
+      <div class="panel chamfer comms">
+        <div class="panel__body comms__body">
+          <p class="comms__line">Open a channel &mdash; source, issues and everything in flight are on GitHub.</p>
+          <a class="btn comms__btn" href="https://github.com/Errnolink" target="_blank" rel="noopener noreferrer">
+            GITHUB / ERRNOLINK <span aria-hidden="true">&#8599;</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ═══ FOOTER ═════════════════════════════════════════════════════════ -->
+<footer class="footer">
+  <div class="hazard hazard--animated" aria-hidden="true"></div>
+  <div class="marquee" id="marquee">
+    <div class="marquee__track" id="marquee-track">
+      <span class="marquee__run" id="marquee-run">ERRNOLINK ORBITAL OBSERVATION STATION &nbsp;&#9642;&nbsp; ALL SYSTEMS NOMINAL &nbsp;&#9642;&nbsp; TRACKED OBJECTS 5 &nbsp;&#9642;&nbsp; SIRIUS &alpha; CMa &nbsp;&#9642;&nbsp; BETELGEUSE &alpha; Ori &nbsp;&#9642;&nbsp; RIGEL &beta; Ori &nbsp;&#9642;&nbsp; UPLINK STANDBY &nbsp;&#9642;&nbsp; </span>
+    </div>
+  </div>
+  <div class="footer__bar wrap">
+    <span class="label">&copy; <span id="footer-year">2026</span> ERRNOLINK</span>
+    <span class="label footer__mid" aria-hidden="true">簡素 &mdash; DATA IS THE POINT</span>
+    <span class="label">BUILT WITH NO FRAMEWORK</span>
+  </div>
+</footer>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,173 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANIMATIONS — every @keyframes on the site lives here.
+
+   Doctrine: mechanical, not organic. Hard cubic-bezier, short durations,
+   transform/opacity only. Enter is slower than exit — chrome arrives
+   deliberately and leaves immediately. Nothing bounces, nothing springs.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0.15; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+
+/* ── The glitch reveal — the site's signature move ─────────────────────── */
+
+@keyframes stamp-wipe {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes glitch-slice {
+  0%   { clip-path: inset(12% 0 61% 0); transform: translateX(-3px); opacity: 0.8; animation-timing-function: step-end; }
+  20%  { clip-path: inset(55% 0 25% 0); transform: translateX(3px);  opacity: 0.8; animation-timing-function: step-end; }
+  40%  { clip-path: inset(80% 0 4% 0);  transform: translateX(-2px); opacity: 0.8; animation-timing-function: step-end; }
+  60%  { clip-path: inset(30% 0 48% 0); transform: translateX(2px);  opacity: 0.8; animation-timing-function: step-end; }
+  80%  { clip-path: inset(0 0 92% 0);   transform: translateX(-1px); opacity: 0.8; animation-timing-function: step-end; }
+  100% { clip-path: inset(0 0 100% 0);  transform: translateX(0);    opacity: 0; }
+}
+
+/* ── Section choreography ───────────────────────────────────────────────── */
+
+@keyframes panel-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rule-grow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+@keyframes label-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* A tube warming up: it lands, stutters once, then holds. */
+@keyframes flicker-in {
+  0%   { opacity: 0;   transform: translateY(8px); animation-timing-function: step-end; }
+  55%  { opacity: 1;   transform: translateY(0); }
+  70%  { opacity: 0.3; transform: translateY(0); animation-timing-function: step-end; }
+  100% { opacity: 1;   transform: translateY(0); }
+}
+
+@keyframes bar-grow {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+
+/* ── Loops. Exactly one of each on the page. ───────────────────────────── */
+
+@keyframes sweep-x {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%); }
+}
+
+@keyframes hazard-crawl {
+  from { background-position: 0 0; }
+  to   { background-position: 34px 0; }
+}
+
+@keyframes marquee-run {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@keyframes cursor-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+@keyframes boot-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-6px); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE GLITCH APPARATUS
+
+   Two absolutely-positioned copies of the text (cyan and orange) slice
+   across it once and die. Plays on reveal only — never on hover, never in
+   a loop.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-text] {
+  position: relative;
+}
+
+[data-text]::before,
+[data-text]::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  white-space: nowrap;
+}
+
+[data-text]::before { color: var(--cyan); }
+[data-text]::after { color: var(--primary); }
+
+.gl-run { animation: stamp-wipe 240ms var(--ease-out) both; }
+.gl-run::before { animation: glitch-slice 280ms 240ms 1 both; }
+.gl-run::after  { animation: glitch-slice 280ms 240ms 1 both reverse; }
+
+/* Section headings get the short variant. */
+.gl-run--short { animation-duration: 200ms; }
+.gl-run--short::before,
+.gl-run--short::after {
+  animation-duration: 200ms;
+  animation-delay: 200ms;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   REVEAL
+
+   `html.js-reveal` is set by main.js only when effects are live. Without it
+   — no JS, reduced motion, FX off — nothing is ever hidden, so the page is
+   complete and static from the first paint.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.js-reveal .section:not(.is-live) .panel,
+.js-reveal .section:not(.is-live) .tracked-object,
+.js-reveal .section:not(.is-live) .sec-head__jp {
+  opacity: 0;
+}
+
+.js-reveal .section:not(.is-live) .sec-head__rule {
+  transform: scaleX(0);
+}
+
+.js-reveal .section:not(.is-live) .bars__bar {
+  transform: scaleY(0);
+}
+
+/* Stagger, capped so a long list never drifts past the 320ms budget. */
+.is-live .panel {
+  animation: panel-rise var(--t-enter) var(--ease-out) both;
+  animation-delay: calc(min(var(--i, 0), 8) * 40ms);
+}
+
+.is-live .tracked-object {
+  animation: flicker-in var(--t-enter) var(--ease-out) both;
+  animation-delay: calc(min(var(--i, 0), 8) * 40ms);
+}
+
+.is-live .sec-head__rule {
+  animation: rule-grow 240ms var(--ease-mech) both;
+}
+
+.is-live .sec-head__jp {
+  animation: label-in var(--t-tick) var(--ease-out) 120ms both;
+}
+
+.is-live .bars__bar {
+  animation: bar-grow 240ms var(--ease-mech) both;
+  animation-delay: calc(var(--i, 0) * 20ms);
+}

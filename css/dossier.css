@@ -1,0 +1,56 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   DOSSIER — the operator record.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.dossier__body {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.75rem;
+  align-items: start;
+}
+
+.dossier__portrait {
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+  justify-items: center;
+  flex: none;
+}
+
+.dossier__portrait img {
+  width: 132px;
+  height: 132px;
+  border: var(--hairline) solid var(--border-hi);
+  /* The portrait is a surveillance still, not a profile picture. */
+  filter: grayscale(1) contrast(1.15) brightness(0.9);
+  transition: filter var(--t-enter) var(--ease-mech);
+}
+
+.dossier__portrait:hover img {
+  filter: grayscale(0) contrast(1) brightness(1);
+}
+
+.dossier__portrait figcaption {
+  color: var(--text-faint);
+  font-size: var(--size-orn);
+}
+
+.dossier__data {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.dossier__bio {
+  color: var(--text-2);
+  max-width: 62ch;
+}
+
+.dossier__bio strong {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.dossier .datalist {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  column-gap: 2rem;
+}

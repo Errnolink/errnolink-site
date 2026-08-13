@@ -1,0 +1,121 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   TOKENS — the whole palette, motion and type contract.
+
+   Values follow the Kanso design language (classic generation) but this site
+   is a standalone consumer: it shares no code with the library. A literal
+   colour, duration or font stack anywhere outside this file is a bug.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Grounds ─────────────────────────────────────────────────────────── */
+  --bg: #000000;
+  --panel: #0a0a0c;
+  --panel-2: #121214;
+  --panel-3: #17171b;
+  --well: #050505;
+  --border: #1f1f23;
+  --border-hi: #2e2e34;
+
+  /* ── Text ────────────────────────────────────────────────────────────── */
+  --text: #e8e8e4;
+  --text-2: #b8b8b2;
+  --text-dim: #8a8a85;
+  --text-faint: #6a6a65;
+
+  /* ── Command chrome (orange) ─────────────────────────────────────────── */
+  --primary: #ff9830;
+  --primary-hot: #ffcc50;
+  --primary-dim: #c87020;
+
+  /* ── Observational data (cyan) ───────────────────────────────────────── */
+  --cyan: #20f0ff;
+
+  /* ── States ──────────────────────────────────────────────────────────── */
+  --success: #50ff50;
+  --warning: #ffb700;
+  --danger: #ff3030;
+  /* Reserved. Not decorative — held for one future level-5 state. */
+  --violet: #7c3aed;
+
+  /* ── Severity ramp: magnitude, not judgement ─────────────────────────── */
+  --ramp-0: #1f1f23;
+  --ramp-1: #50ff50;
+  --ramp-2: #a3e635;
+  --ramp-3: #ffb700;
+  --ramp-4: #ff9830;
+  --ramp-5: #ff3030;
+
+  /* ── Star inks (canvas only) ─────────────────────────────────────────── */
+  --star-hot: #cfe8ff;
+  --star-mid: #e8e8e4;
+  --star-cool: #ffdf80;
+
+  /* ── Type ────────────────────────────────────────────────────────────── */
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+  --font-stamp: "Bebas Neue", "Arial Narrow", sans-serif;
+  --font-jp: "Shippori Mincho B1", serif;
+
+  --size-hero: clamp(3rem, 12vw, 8rem);
+  --size-stamp-lg: clamp(1.6rem, 4vw, 2.6rem);
+  --size-stamp: 1.25rem;
+  --size-body: 0.875rem;   /* 14px */
+  --size-label: 0.6875rem; /* 11px — the floor for anything read */
+  --size-orn: 0.5625rem;   /* 9px  — bracket ornaments and readouts only */
+
+  --track-label: 0.16em;
+  --track-stamp: 0.2em;
+  --compress: scaleX(0.82);
+
+  /* ── Motion ──────────────────────────────────────────────────────────── */
+  --ease-mech: cubic-bezier(0.83, 0, 0.17, 1); /* the house curve, in-out */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);   /* enters and reveals */
+
+  --t-tick: 120ms;
+  --t-enter: 160ms;
+  --t-exit: 100ms;
+  --t-overlay-in: 140ms;
+  --t-overlay-out: 90ms;
+  --t-sweep: 2000ms;
+  --t-blink: 1000ms;
+  --t-pulse: 1400ms;
+  --t-crawl: 1200ms;
+
+  /* ── Geometry ────────────────────────────────────────────────────────── */
+  --chamfer: 12px;
+  --chamfer-sm: 8px;
+  --hairline: 1px;
+  --topbar-h: 44px;
+
+  /* ── Z-layers ────────────────────────────────────────────────────────── */
+  --z-sky: 0;
+  --z-chrome: 1;
+  --z-topbar: 50;
+  --z-atmosphere: 900;
+  --z-boot: 1000;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE KILL CONTRACT
+
+   Every moving thing on this site dies under BOTH of these. The page must be
+   fully usable — and very nearly as good-looking — completely static.
+   The visible FX toggle in the header is also the SC 2.2.2 pause mechanism
+   for the starfield, the sweep line and the marquee.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+html[data-fx="off"] *,
+html[data-fx="off"] *::before,
+html[data-fx="off"] *::after {
+  animation: none !important;
+  transition-duration: 1ms !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
