@@ -21,10 +21,11 @@
 
 <!-- ═══ z0 — THE VIEW OUTSIDE ═══════════════════════════════════════════ -->
 <canvas id="sky" aria-hidden="true"></canvas>
+<div class="backdrop" aria-hidden="true"></div>
 
 <!-- ═══ z900 — ATMOSPHERE ══════════════════════════════════════════════ -->
 <div class="atmosphere" aria-hidden="true">
-  <div class="atmosphere__scanlines"></div>
+  <canvas class="atmosphere__scanlines" id="scanlines" aria-hidden="true"></canvas>
   <div class="atmosphere__grain"></div>
   <div class="atmosphere__vignette"></div>
 </div>
@@ -47,8 +48,9 @@
 
   <div class="topbar__clocks">
     <span class="readout"><span class="readout__label">UTC</span><span class="readout__value" id="clock-utc">--:--:--</span></span>
-    <span class="readout"><span class="readout__label">JD</span><span class="readout__value" id="clock-jd">----------.-----</span></span>
-    <span class="readout topbar__gmst"><span class="readout__label">GMST</span><span class="readout__value" id="clock-gmst">--:--:--</span></span>
+    <span class="readout readout--jd"><span class="readout__label">JD</span><span class="readout__value" id="clock-jd">----------.-----</span></span>
+    <span class="readout topbar__gmst readout--gmst"><span class="readout__label">GMST</span><span class="readout__value" id="clock-gmst">--:--:--</span></span>
+    <span class="readout topbar__local readout--local"><span class="readout__label">LOCAL</span><span class="readout__value" id="clock-local">--:--:--</span></span>
   </div>
 
   <div class="topbar__right">
@@ -73,12 +75,13 @@
         <span class="hero__jp jp" aria-hidden="true">軌道観測局</span>
       </div>
 
-      <p class="hero__sub">ORBITAL OBSERVATION STATION // ERRNOLINK &mdash; 22.5&deg;N 79.0&deg;E &mdash; EST. 2021</p>
+      <p class="hero__sub">ORBITAL OBSERVATION STATION // ERRNOLINK &mdash; 77.9&deg;S 166.7&deg;E &mdash; EST. 2021</p>
 
       <div class="hero__strip">
         <span class="readout"><span class="readout__label">GMST</span><span class="readout__value" id="hero-gmst">--:--:--</span></span>
         <span class="readout"><span class="readout__label">Field</span><span class="readout__value">RA 05H36M DEC +00&deg;</span></span>
         <span class="readout"><span class="readout__label">Catalog</span><span class="readout__value" id="hero-catalog">---</span></span>
+        <span class="readout"><span class="readout__label">Moon</span><span class="readout__value hero__moon" id="hero-moon">&#9675; ---</span></span>
         <span class="readout"><span class="readout__label">Uplink</span><span class="readout__value"><span class="led led--idle" id="hero-led"></span></span></span>
       </div>
 
@@ -97,6 +100,7 @@
       </header>
 
       <div class="panel chamfer dossier">
+        <span class="hazard hazard--edge" aria-hidden="true"></span>
         <div class="panel__head">
           <span class="led led--nominal"></span>
           <span class="panel__title label">Operator Record</span>
@@ -266,38 +270,78 @@
           <div class="panel__head">
             <span class="led led--nominal"></span>
             <span class="panel__title label">Activity by object &mdash; public event feed</span>
-            <span class="panel__meta label" id="activity-total">&mdash;</span>
+            <span class="panel__meta label" id="activity-total">9 PUSHES / SINCE 2026-07-14</span>
           </div>
           <div class="panel__body">
             <div class="cores" id="activity-cores" role="img" aria-label="Pushes per tracked object in the public event feed">
-              <div class="core">
-                <span class="core__id label">01</span><span class="core__name label">kanso</span>
-                <pre class="core__graph" data-level="3" aria-hidden="true">⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⠀⠀⢀⣀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣴⣿⣤⣤⣾⣿</pre>
-                <span class="core__count">9</span>
+              <div class="core" data-level="2">
+                <span class="core__id label">01</span>
+                <span class="core__name label">kanso</span>
+                <div class="core__track">
+                  <pre class="core__floor" aria-hidden="true">
+
+
+⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀</pre>
+                  <pre class="core__graph" aria-hidden="true">⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿⣷
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⣿⣿⣿⣿
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣴⣿⣿⣿⣿⣿</pre>
+                </div>
+                <span class="core__count">2</span>
               </div>
-              <div class="core">
-                <span class="core__id label">02</span><span class="core__name label">seele</span>
-                <pre class="core__graph" data-level="2" aria-hidden="true">⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⣀⠀⠀⠀⠀⠀⠀⠀⣀⣀⠀⠀⠀⣠⣤⣀⠀</pre>
-                <span class="core__count">5</span>
+              <div class="core" data-level="2">
+                <span class="core__id label">02</span>
+                <span class="core__name label">seele</span>
+                <div class="core__track">
+                  <pre class="core__floor" aria-hidden="true">
+
+
+⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀</pre>
+                  <pre class="core__graph" aria-hidden="true">⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿⣿⣿⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿⣿
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⣿⣿⣿⣿⣿⣿⣷⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⣿⣿⣿⣿</pre>
+                </div>
+                <span class="core__count">2</span>
               </div>
-              <div class="core">
-                <span class="core__id label">03</span><span class="core__name label">nerv-geo-monitor</span>
-                <pre class="core__graph" data-level="2" aria-hidden="true">⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⣀⠀⠀⠀⠀⠀⠀⠀⣀⠀⠀⠀⣠⣿</pre>
-                <span class="core__count">4</span>
+              <div class="core" data-level="2">
+                <span class="core__id label">03</span>
+                <span class="core__name label">nerv-geo-monitor</span>
+                <div class="core__track">
+                  <pre class="core__floor" aria-hidden="true">
+
+
+⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀</pre>
+                  <pre class="core__graph" aria-hidden="true">⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⣿⣷⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⣿
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⣿⣿⣿⣷⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⣿⣿
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣾⣿⣿⣿⣿⣿⣿⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣾⣿⣿⣿</pre>
+                </div>
+                <span class="core__count">2</span>
               </div>
-              <div class="core">
-                <span class="core__id label">04</span><span class="core__name label">cadence-planner</span>
-                <pre class="core__graph" data-level="5" aria-hidden="true">⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⠀⣀⣴⣿
-⠀⠀⠀⣀⠀⠀⠀⠀⢀⣀⣤⣤⣴⣶⣾⣿⣿⣶⣿⣿⣿</pre>
-                <span class="core__count">15</span>
+              <div class="core" data-level="2">
+                <span class="core__id label">04</span>
+                <span class="core__name label">cadence-planner</span>
+                <div class="core__track">
+                  <pre class="core__floor" aria-hidden="true">
+
+
+⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀</pre>
+                  <pre class="core__graph" aria-hidden="true">⣿⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⣿
+⣿⣿⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⣿⣿
+⣿⣿⣿⣷⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣾⣿⣿⣿</pre>
+                </div>
+                <span class="core__count">2</span>
               </div>
-              <div class="core">
-                <span class="core__id label">05</span><span class="core__name label">omp-theme-visualiser</span>
-                <pre class="core__graph" data-level="1" aria-hidden="true">⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿</pre>
+              <div class="core" data-level="2">
+                <span class="core__id label">05</span>
+                <span class="core__name label">omp-theme-visualiser</span>
+                <div class="core__track">
+                  <pre class="core__floor" aria-hidden="true">
+
+
+⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀</pre>
+                  <pre class="core__graph" aria-hidden="true">⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⣿
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⣿⣿
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣾⣿⣿⣿</pre>
+                </div>
                 <span class="core__count">1</span>
               </div>
             </div>
@@ -334,11 +378,11 @@
           </div>
           <div class="panel__body">
             <ol class="log" id="event-log">
-              <li class="log__line"><span class="log__time">2026-08-13</span><span class="log__kind log__kind--push">PUSH</span><span class="log__body">nerv-geo-monitor &#9656; main</span></li>
-              <li class="log__line"><span class="log__time">2026-08-13</span><span class="log__kind log__kind--push">PUSH</span><span class="log__body">cadence-planner &#9656; preview-1</span></li>
-              <li class="log__line"><span class="log__time">2026-08-13</span><span class="log__kind log__kind--push">PUSH</span><span class="log__body">kanso &#9656; main</span></li>
-              <li class="log__line"><span class="log__time">2026-08-12</span><span class="log__kind log__kind--push">PUSH</span><span class="log__body">seele &#9656; refactor/ui-boundary</span></li>
-              <li class="log__line"><span class="log__time">2026-08-12</span><span class="log__kind log__kind--create">NEW OBJECT</span><span class="log__body">omp-theme-visualiser</span></li>
+              <li class="log__line" style="--i:0"><span class="log__time">2026-08-13</span><span class="log__kind log__kind--push">PUSH</span><span class="log__body">nerv-geo-monitor &#9656; main</span></li>
+              <li class="log__line" style="--i:1"><span class="log__time">2026-08-13</span><span class="log__kind log__kind--push">PUSH</span><span class="log__body">cadence-planner &#9656; preview-1</span></li>
+              <li class="log__line" style="--i:2"><span class="log__time">2026-08-13</span><span class="log__kind log__kind--push">PUSH</span><span class="log__body">kanso &#9656; main</span></li>
+              <li class="log__line" style="--i:3"><span class="log__time">2026-08-12</span><span class="log__kind log__kind--push">PUSH</span><span class="log__body">seele &#9656; refactor/ui-boundary</span></li>
+              <li class="log__line" style="--i:4"><span class="log__time">2026-08-12</span><span class="log__kind log__kind--create">NEW OBJECT</span><span class="log__body">omp-theme-visualiser</span></li>
             </ol>
           </div>
         </div>

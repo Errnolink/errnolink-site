@@ -16,12 +16,58 @@
   pointer-events: none;
 }
 
+/* ── z0, over the sky: the survey grid ─────────────────────────────────── */
+
+/* A plotting grid ruled across the window, behind every instrument. It is
+   the thing that makes the panels read as bolted onto a chart rather than
+   floating in space, and it is doing that at 5% alpha — if it is legible as
+   a grid it is too loud. Static: nothing here moves, so nothing here has to
+   be killed. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-backdrop);
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, var(--grid-line) 0 var(--hairline), transparent var(--hairline)),
+    linear-gradient(to bottom, var(--grid-line) 0 var(--hairline), transparent var(--hairline));
+  background-size: var(--grid-cell) var(--grid-cell);
+}
+
 /* ── z900: scanlines, grain, vignette ──────────────────────────────────── */
+
+/* BUG — "the scanlines stop halfway down the screen while I hover a card".
+ *
+ * Hovering a `.tracked-object` lifts it with a transform and runs a one-shot
+ * sweep on its ::after. That promotes the card to its own compositor layer,
+ * and because this fixed overlay paints on top of it, Chromium has to
+ * promote the overlay too — mid-interaction — and re-raster the CSS paint
+ * of this full-viewport layer at whatever raster scale the new layer gets.
+ * On a fractional device pixel ratio a 1px line on a 4px period does not
+ * survive that re-raster: the scanlines visibly cut out over part of the
+ * screen, and the half-blank texture stays cached for the hover's duration
+ * — it reads as "the scanlines freeze halfway down".
+ *
+ * Two CSS-only defences were tried and both failed on real hardware:
+ * pre-promoting the overlay (`will-change: transform` + `contain`, kept
+ * below for the grain and vignette) and tiling a small background instead
+ * of a viewport-sized gradient. The re-raster is of the layer's paint, so
+ * no arrangement of CSS paint survives it.
+ *
+ * FIX — the scanlines are no longer CSS paint at all. They are drawn on
+ * their own canvas (`src/ui/atmosphere.js`): a GPU texture the compositor
+ * never re-rasterizes, only script repaints, and this script repaints only
+ * on resize. The canvas is hard-promoted below (`translateZ(0)`, not just
+ * `will-change` — a hint a browser may drop) so a hover cannot touch its
+ * layer either.
+ */
 .atmosphere {
   position: fixed;
   inset: 0;
   z-index: var(--z-atmosphere);
   pointer-events: none;
+  will-change: transform;
+  contain: layout paint;
 }
 
 .atmosphere > * {
@@ -29,17 +75,14 @@
   inset: 0;
 }
 
-/* The period is pinned in background-size. Without that pin a scroll
-   animation on this layer resolves to zero travel and silently does nothing
-   — the bug is inherited from the parent design system, so it is written
-   down here even though this site keeps the scanlines static. */
 .atmosphere__scanlines {
-  background-image: repeating-linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.06) 0 1px,
-    transparent 1px 4px
-  );
-  background-size: 100% 4px;
+  /* Sized and drawn by initScanlines(); these rules only position the
+     canvas and pin it to its own compositor layer. */
+  width: 100%;
+  height: 100%;
+  transform: translateZ(0);
+  will-change: transform;
+  contain: paint;
 }
 
 .atmosphere__grain {
@@ -85,6 +128,19 @@ html[data-fx="off"] .atmosphere__grain {
 
 .hazard--animated {
   animation: hazard-crawl var(--t-crawl) linear infinite;
+}
+
+/* The same stripe stood on its end, for a panel edge. Static — the one
+   animated pair on the page is the footer's. */
+.hazard--edge {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 5px;
+  height: auto;
+  /* Below the footer pair's 0.55 would read as grey noise rather than as a
+     hazard flag; the diagonal is only 5px wide to carry the colour. */
+  opacity: 0.6;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

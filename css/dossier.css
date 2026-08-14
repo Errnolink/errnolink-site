@@ -2,6 +2,14 @@
    DOSSIER — the operator record.
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/* The dossier is the one panel that is a record about a person, so it gets
+   the flag a physical file would carry. The chamfer clips the strip's top
+   corner for free. */
+.dossier .panel__head,
+.dossier .panel__body {
+  padding-left: 1.35rem;
+}
+
 .dossier__body {
   display: grid;
   grid-template-columns: auto 1fr;

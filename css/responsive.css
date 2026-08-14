@@ -57,7 +57,8 @@
 }
 
 @media (max-width: 620px) {
-  .topbar__gmst {
+  .topbar__gmst,
+  .topbar__local {
     display: none;
   }
 
@@ -86,6 +87,23 @@
   .comms__body {
     align-items: flex-start;
   }
+
+  /* On a phone the four-column core row leaves the track too narrow to draw
+     a shape in. Break it over two lines instead: the name gets its own row,
+     the graph gets the width. */
+  .core {
+    grid-template-columns: 2.5ch 1fr auto;
+    grid-template-areas:
+      "id   name  name"
+      "id   track count";
+    row-gap: 0.3rem;
+    column-gap: 0.6rem;
+  }
+
+  .core__id { grid-area: id; align-self: center; }
+  .core__name { grid-area: name; }
+  .core__track { grid-area: track; }
+  .core__count { grid-area: count; }
 }
 
 /* Touch devices get no hover state worth animating — but focus-within still

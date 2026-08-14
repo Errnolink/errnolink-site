@@ -23,23 +23,20 @@
   to   { clip-path: inset(0 0 0 0); }
 }
 
-/* Chromatic split, after the cadence-planner treatment: an offset copy of
-   the text carrying only a coloured shadow, clipped to a band that jumps
-   between frames. Two of them, mirrored, running against each other. */
-@keyframes glitch-split-a {
-  0%   { transform: translate(-4px, -1px); clip-path: inset(2% 0 64% 0); }
-  25%  { transform: translate(5px, 1px);   clip-path: inset(28% 0 46% 0); }
-  50%  { transform: translate(-3px, 0);    clip-path: inset(56% 0 20% 0); }
-  75%  { transform: translate(3px, -1px);  clip-path: inset(10% 0 72% 0); }
-  100% { transform: translate(0, 0);       clip-path: inset(0 0 100% 0); opacity: 0; }
+/* Chromatic split, cadence-planner's `glitch-spike` verbatim in shape: an
+   opaque copy of the text, clipped to a band, jumping between three band
+   positions and three offsets. Two of them, mirrored, running against each
+   other on `alternate-reverse` so the pair never syncs up. */
+@keyframes glitch-spike {
+  0%   { clip-path: polygon(0 0%, 100% 0%, 100% 40%, 0 40%);     transform: translate(-4px, -1px); }
+  50%  { clip-path: polygon(0 30%, 100% 30%, 100% 80%, 0 80%);   transform: translate(5px, 1px); }
+  100% { clip-path: polygon(0 70%, 100% 70%, 100% 100%, 0 100%); transform: translate(-3px, 0); }
 }
 
-@keyframes glitch-split-b {
-  0%   { transform: translate(4px, 1px);   clip-path: inset(50% 0 12% 0); }
-  25%  { transform: translate(-5px, -1px); clip-path: inset(14% 0 58% 0); }
-  50%  { transform: translate(3px, 0);     clip-path: inset(70% 0 6% 0); }
-  75%  { transform: translate(-3px, 1px);  clip-path: inset(38% 0 40% 0); }
-  100% { transform: translate(0, 0);       clip-path: inset(100% 0 0 0); opacity: 0; }
+@keyframes glitch-spike-2 {
+  0%   { clip-path: polygon(0 50%, 100% 50%, 100% 90%, 0 90%);   transform: translate(4px, 1px); }
+  50%  { clip-path: polygon(0 10%, 100% 10%, 100% 60%, 0 60%);   transform: translate(-5px, -1px); }
+  100% { clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%);   transform: translate(3px, 0); }
 }
 
 /* ── Section choreography ───────────────────────────────────────────────── */
@@ -79,6 +76,19 @@
   to   { transform: translateX(100%); }
 }
 
+/* The tracked-object lock-on scan (tracking.css). `translateX` percentages
+   resolve against the *band's own 60px box*, so `to 100%` would stop it
+   60px inside the card and park it there (fill-mode both) — the hover then
+   read as a scan that froze midway. 100cqw is the tracked object's content
+   width (see tracking.css); the extra 100% (the band's own width) carries
+   it past the padding and the right border, so the band fully exits the
+   card and nothing is parked. Paced by --t-scan, not --t-sweep: that token
+   belongs to the telemetry panel's infinite sweep loop above. */
+@keyframes sweep-card {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(calc(100cqw + 100%)); }
+}
+
 @keyframes hazard-crawl {
   from { background-position: 0 0; }
   to   { background-position: 34px 0; }
@@ -102,24 +112,30 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    THE GLITCH APPARATUS
 
-   A wipe, then a chromatic split: two offset copies of the text carrying
-   only coloured shadows, slicing across it once. Plays on reveal only —
-   never on hover, never in a loop.
+   Cadence-planner's GPA-badge recipe, ported to this palette. A wipe and a
+   chromatic split, both inside one ~150ms window, torn down at 200ms.
+   Plays on reveal only — never on hover, never in a loop.
+
+   The thing that makes it read as a glitch rather than a ghost is that the
+   copies are OPAQUE. `background: var(--bg)` means each band occludes the
+   base text underneath it, so a slice genuinely displaces sideways instead
+   of two coloured duplicates fading over the original. Black is the right
+   occluder everywhere on this site, because every heading sits directly on
+   the starfield.
 
    Three things keep it cheap, and all three matter:
 
    1. The copies exist ONLY while `.gl-run` is set. `content` is bound to
       the running class, not to `[data-text]`, so nothing duplicates the
       wordmark when it is just sitting there.
-   2. The copies are `color: transparent` and carry no blur — only a hard
-      offset shadow. Inheriting the hero's 18px halo meant every frame
-      repainted three blurred copies of 128px text, which is what made this
-      stutter.
+   2. The copies carry no blur — only a hard offset shadow. Inheriting the
+      hero's 18px halo meant every frame repainted three blurred copies of
+      128px text, which is what made this stutter.
    3. The halo is suppressed on the element itself for the duration, so the
-      clip-path wipe repaints flat text. The glow arrives when it lands.
+      wipe repaints flat text. The glow arrives when it lands.
 
-   `reveal.js` removes the class on animationend, so the cost is bounded to
-   the burst.
+   `reveal.js` removes the class 200ms in, so the cost is bounded to the
+   burst.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 [data-text] {
@@ -127,7 +143,7 @@
 }
 
 .gl-run {
-  animation: stamp-wipe 240ms var(--ease-out) both;
+  animation: stamp-wipe 150ms var(--ease-out) both;
   text-shadow: none;
   will-change: clip-path;
 }
@@ -136,32 +152,49 @@
 .gl-run::after {
   content: attr(data-text);
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
   white-space: nowrap;
-  color: transparent;
+  /* The occluder. Without it this is a ghost, not a glitch. */
+  background: var(--bg);
   will-change: transform, clip-path;
 }
 
 .gl-run::before {
+  left: 4px;
   text-shadow: -2px 0 var(--cyan);
-  animation: glitch-split-a 260ms steps(1, end) 200ms 1 both;
+  clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+  animation: glitch-spike 100ms infinite linear alternate-reverse;
 }
 
 .gl-run::after {
-  text-shadow: 2px 0 var(--primary), -1px 1px var(--cyan);
-  animation: glitch-split-b 260ms steps(1, end) 200ms 1 both;
+  left: -4px;
+  text-shadow: -2px 0 var(--primary), 2px 1px var(--cyan);
+  clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+  animation: glitch-spike-2 100ms infinite linear alternate-reverse;
 }
 
-/* Section headings are small and numerous — they get a tighter burst. */
+/* Section headings are small and numerous — they get a tighter wipe. */
 .gl-run--short {
-  animation-duration: 180ms;
+  animation-duration: 120ms;
 }
 
-.gl-run--short::before,
-.gl-run--short::after {
-  animation-duration: 200ms;
-  animation-delay: 150ms;
+/* The kill contract, belt and braces. `reveal.js` will not start a burst
+   when effects are off, but an infinite animation frozen by `animation:
+   none` would otherwise leave two opaque bands parked over the heading. */
+html[data-fx="off"] .gl-run::before,
+html[data-fx="off"] .gl-run::after {
+  content: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gl-run::before,
+  .gl-run::after {
+    content: none;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -175,6 +208,10 @@
 .js-reveal .section:not(.is-live) .panel,
 .js-reveal .section:not(.is-live) .tracked-object,
 .js-reveal .section:not(.is-live) .sec-head__jp {
+  opacity: 0;
+}
+
+.js-reveal .section:not(.is-live) .log__line {
   opacity: 0;
 }
 
@@ -195,6 +232,14 @@
 .is-live .tracked-object {
   animation: flicker-in var(--t-enter) var(--ease-out) both;
   animation-delay: calc(min(var(--i, 0), 8) * 40ms);
+}
+
+/* The log lands a line at a time, the way a printer catches up. Same tube
+   flicker as the cards, faster stagger — there are more of them — and capped
+   so a long feed never runs past the section's motion budget. */
+.is-live .log__line {
+  animation: flicker-in var(--t-enter) var(--ease-out) both;
+  animation-delay: calc(min(var(--i, 0), 10) * 30ms);
 }
 
 .is-live .sec-head__rule {

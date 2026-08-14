@@ -146,6 +146,12 @@
   vertical-align: middle;
 }
 
+/* The phase glyph is a geometric shape, not an emoji — but it is still not
+   in every mono face, so it takes the symbol stack. */
+.hero__moon {
+  font-family: var(--font-symbol);
+}
+
 .hero__cue {
   display: inline-block;
   margin-top: 2.5rem;

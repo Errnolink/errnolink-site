@@ -9,6 +9,13 @@
   align-items: start;
 }
 
+/* A grid item will not shrink below its min-content unless told to, and the
+   activity panel's min-content is a five-column row of braille. Without this
+   the panel pushes the whole page wider than the viewport on a phone. */
+.telemetry > .panel {
+  min-width: 0;
+}
+
 .telemetry__log {
   grid-column: 1 / -1;
 }
@@ -53,21 +60,37 @@
   animation: sweep-x var(--t-sweep) linear infinite;
 }
 
-/* ── Per-object braille tracks, in btop's per-core layout ──────────────── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   PER-OBJECT BRAILLE TRACKS — btop's per-core layout.
+
+   Every row is an instrument, not a line of text: a boxed track well with a
+   hairline frame, a ramp tick on its leading edge, three braille rows of
+   graph, and the count in its own readout cell. A dim dot floor runs the
+   width of every track, so a span with no pushes reads as a flatline rather
+   than as nothing at all.
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 .cores {
   display: grid;
-  gap: 0.4rem;
-  padding: 0.75rem 0.6rem;
-  background: var(--well);
+  gap: 0;
+  padding: 0.35rem 0.5rem;
+  background: var(--panel-2);
   border: var(--hairline) solid var(--border);
 }
 
 .core {
   display: grid;
-  grid-template-columns: 2.5ch minmax(0, 15ch) 1fr 4ch;
+  /* Wide enough for `nerv-geo-monitor` at this tracking; the one name longer
+     than that ellipses, which is better than giving every row the column
+     the longest name would want. */
+  grid-template-columns: 2.5ch minmax(0, 19ch) 1fr auto;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.8rem;
+  padding-block: 0.4rem;
+}
+
+.core + .core {
+  border-top: var(--hairline) solid var(--border);
 }
 
 .core__id {
@@ -81,29 +104,90 @@
   white-space: nowrap;
 }
 
-.core__graph {
-  margin: 0;
+/* ── The track well ────────────────────────────────────────────────────── */
+.core__track {
+  position: relative;
   min-width: 0;
   overflow: hidden;
-  font-family: var(--font-braille);
+  padding: 4px 4px 4px 8px;
+  background: var(--well);
+  border: var(--hairline) solid var(--border);
+  /* The floor and the graph share one grid cell, so they are the same box:
+     same font, same line count, same three line boxes. Absolute positioning
+     put the floor's single line a pixel or two below the graph's last one,
+     which is exactly the sort of miss a dot grid makes obvious. */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Ramp tick on the leading edge — the row's magnitude, readable before the
+   graph is. Static, no glow. */
+.core__track::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 2px;
+  background: var(--ramp-0);
+}
+
+.core__floor,
+.core__graph {
+  grid-area: 1 / 1;
+  margin: 0;
+  min-width: 0;
+  /* Deliberately NOT a scroll container — the track clips instead. */
+  font-family: var(--font-symbol);
   font-size: 13px;
-  line-height: 1.05;
+  line-height: 1;
   letter-spacing: 0;
   white-space: pre;
+  /* The rightmost column is always NOW. The live render measures the track
+     and fills it exactly, but the baked fallback cannot know the viewport —
+     so when a track is too narrow for its content, the overflow has to come
+     off the old end, not off the end the reader is looking at.
+     `text-align: right` cannot do this — an over-long line always overflows
+     the inline-END edge, whatever the alignment. Flipping the base direction
+     moves that edge. Braille patterns are strong left-to-right, so the run
+     keeps its order; only its placement changes. */
+  direction: rtl;
+}
+
+/* The flatline. Painted first, so the data covers it exactly where there is
+   data and it shows through everywhere there is not — an empty span reads
+   as a quiet instrument rather than as an empty box. */
+.core__floor {
+  color: var(--border-hi);
+}
+
+.core__graph {
   color: var(--ramp-1);
 }
 
-.core__graph[data-level="0"] { color: var(--ramp-0); }
-.core__graph[data-level="1"] { color: var(--ramp-1); }
-.core__graph[data-level="2"] { color: var(--ramp-2); }
-.core__graph[data-level="3"] { color: var(--ramp-3); }
-.core__graph[data-level="4"] { color: var(--ramp-4); }
-.core__graph[data-level="5"] { color: var(--ramp-5); }
+.core[data-level="0"] .core__graph { color: var(--ramp-0); }
+.core[data-level="1"] .core__graph { color: var(--ramp-1); }
+.core[data-level="2"] .core__graph { color: var(--ramp-2); }
+.core[data-level="3"] .core__graph { color: var(--ramp-3); }
+.core[data-level="4"] .core__graph { color: var(--ramp-4); }
+.core[data-level="5"] .core__graph { color: var(--ramp-5); }
 
+.core[data-level="0"] .core__track::before { background: var(--ramp-0); }
+.core[data-level="1"] .core__track::before { background: var(--ramp-1); }
+.core[data-level="2"] .core__track::before { background: var(--ramp-2); }
+.core[data-level="3"] .core__track::before { background: var(--ramp-3); }
+.core[data-level="4"] .core__track::before { background: var(--ramp-4); }
+.core[data-level="5"] .core__track::before { background: var(--ramp-5); }
+
+/* ── The count readout ─────────────────────────────────────────────────── */
 .core__count {
+  min-width: 5ch;
+  padding: 0.15rem 0.4rem;
   text-align: right;
-  color: var(--cyan);
   font-size: var(--size-label);
+  font-variant-numeric: tabular-nums;
+  color: var(--cyan);
+  background: var(--well);
+  border: var(--hairline) solid var(--border);
 }
 
 .cores__axis {
@@ -164,6 +248,9 @@
 
 .log__body {
   color: var(--text-2);
+  /* A flex item will not shrink past its min-content without this, so on a
+     narrow screen the line ran off the panel instead of ellipsing. */
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

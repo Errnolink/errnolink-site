@@ -3,12 +3,13 @@
  * One interval drives every clock on the page.
  */
 
-import { formatHours, formatUTC, gmstHours, julianDate } from "../data/astro.js";
+import { formatHours, formatLocal, formatUTC, gmstHours, julianDate } from "../data/astro.js";
 
 export function startClocks() {
   const utc = document.getElementById("clock-utc");
   const jd = document.getElementById("clock-jd");
   const gmst = document.getElementById("clock-gmst");
+  const local = document.getElementById("clock-local");
   const heroGmst = document.getElementById("hero-gmst");
   const astroJd = document.getElementById("a-jd");
   const astroGmst = document.getElementById("a-gmst");
@@ -21,6 +22,7 @@ export function startClocks() {
     if (utc) utc.textContent = formatUTC(now);
     if (jd) jd.textContent = jdVal;
     if (gmst) gmst.textContent = sidereal;
+    if (local) local.textContent = formatLocal(now);
     if (heroGmst) heroGmst.textContent = sidereal;
     if (astroJd) astroJd.textContent = jdVal;
     if (astroGmst) astroGmst.textContent = sidereal;

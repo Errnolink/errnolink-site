@@ -61,6 +61,11 @@ Two honest limits are visible in the UI rather than papered over:
   really the edge of the data. Instead each tracked object gets its own
   braille track — btop's per-core layout — spanning the feed's real
   coverage, with the date it reaches back to stated in the panel header.
+  Each row is built as an instrument rather than a line of text: a boxed
+  well with a hairline frame, a ramp tick on its leading edge, three braille
+  rows of graph and the count in its own readout cell. A dim dot floor runs
+  the width of every track, so a span with no pushes reads as a flatline
+  rather than as nothing at all.
 
   The tracks are Gaussian-smoothed. Pushes are instants, not a sampled
   signal: bucketed raw they render as isolated one-column spikes, a scatter
@@ -82,13 +87,26 @@ Gemini, Auriga and Lepus. The camera points at Orion and drifts at the true
 sidereal rate computed from GMST, so the field is where the sky actually is
 and moves the way it actually moves.
 
-Behind the catalogue is a deterministic field fill of ~850 anonymous faint
-points. These are **not** catalogued stars: they are never labelled and are
-drawn dimmer than everything real. They exist so the sky has the density a
-real one has between the bright stars — and they are the layer that drifts
-continuously and wraps, which is what makes the sky read as moving. The
-catalogue itself does not drift: those stars are real, so they travel at the
-sidereal rate or not at all.
+Behind the catalogue are two deterministic layers of anonymous faint points:
+a field fill of ~1150 and a sparser, dimmer haze of ~320 further back. These
+are **not** catalogued stars: they are never labelled and are drawn dimmer
+than everything real. They exist so the sky has the density a real one has
+between the bright stars — and they are the layers that drift continuously
+and wrap, which is what makes the sky read as moving. The haze drifts at
+under half the fill's rate and takes half its parallax, which is the whole
+reason it is a separate layer. The catalogue itself does not drift: those
+stars are real, so they travel at the sidereal rate or not at all.
+
+The fill is generated in **screen space**, not on the sphere. Scattering it
+uniformly over the celestial sphere and projecting is the physically honest
+thing to do and it photographs badly: stereographic projection stretches
+area away from the tangent point, so the same angular density lands far
+fewer points per pixel at the edges than at the centre and the corners come
+out empty. The catalogue has to be projected, because those are real
+positions. The fill is invented, so it is laid out directly on a wrapping
+virtual plane slightly larger than the viewport — even by construction,
+regenerated on resize, wrapping on both axes because scroll parallax alone
+can walk a screen-space layer off the top of a long page.
 
 The Julian Date, sidereal time, lunar phase and mission-day readouts are all
 computed, not fetched — `scripts/check-astro.mjs` checks them against
@@ -100,16 +118,29 @@ strictly additive and degrades to `NO SIGNAL`.
 Mechanical, not organic: hard cubic-bezier, short durations, transform and
 opacity only, enter slower than exit. Nothing bounces or springs.
 
-The glitch reveal is a wipe followed by a chromatic split — two offset copies
-of the text carrying only hard coloured shadows, slicing across it once, in
-the manner of cadence-planner's `glitch-spike`. Three things keep it cheap,
-and all three matter: the copies exist only while the burst runs (`content`
-is bound to the running class, not to `[data-text]`); they are
-`color: transparent` with no blur; and the element's own halo is suppressed
-for the duration, so the wipe repaints flat text and the glow arrives when it
-lands. Inheriting the hero's 18px halo onto both copies meant every frame
-repainted three blurred copies of 128px text, which is what made it stutter.
-`reveal.js` removes the class when the burst ends, bounding the whole cost.
+The glitch reveal is cadence-planner's badge recipe, ported to this palette:
+a wipe and a chromatic split inside one ~150ms window, torn down at 200ms.
+Two copies of the text sit over it, each clipped to a band that jumps
+between three positions and three offsets while a cyan and an orange fringe
+run against each other.
+
+What makes it read as a glitch rather than as a ghost is that the copies are
+**opaque** — `background: var(--bg)` — so each band occludes the base text
+and the slice genuinely displaces sideways instead of two coloured
+duplicates fading over the original. Black is the right occluder everywhere
+here, because every heading sits directly on the starfield.
+
+Three things keep it cheap, and all three matter: the copies exist only
+while the burst runs (`content` is bound to the running class, not to
+`[data-text]`); they carry a hard offset shadow and no blur; and the
+element's own halo is suppressed for the duration, so the wipe repaints flat
+text and the glow arrives when it lands. Inheriting the hero's 18px halo
+onto both copies meant every frame repainted three blurred copies of 128px
+text, which is what made it stutter. The spike animations are `infinite` —
+the window, not the animation, is what ends the burst — so `reveal.js`
+removes the class on a timer, and `runGlitch` refuses to start at all when
+effects are off, because a frozen burst would park two black bands over the
+heading.
 
 Everything that moves dies under **both** `prefers-reduced-motion` and the
 visible `FX` toggle in the header — which is also the pause mechanism for the

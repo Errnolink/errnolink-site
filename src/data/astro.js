@@ -63,6 +63,24 @@ export function moonPhase(date = new Date()) {
   return { phase, name: PHASE_NAMES[idx], illumination };
 }
 
+/**
+ * A phase glyph for the hero HUD, from the geometric-shapes block.
+ *
+ * Deliberately not the emoji moon faces: there is no emoji anywhere on this
+ * deck, and those render as colour bitmaps, which would make the moon the
+ * brightest thing on a page whose brightest thing is the wordmark. The two
+ * quarter glyphs are lit on the correct side — right waxing, left waning —
+ * which is the only part of the shape carrying information the percentage
+ * beside it does not.
+ *
+ * @param {number} phase 0..1 through the cycle, from `moonPhase()`
+ */
+const PHASE_GLYPHS = ["○", "◔", "◑", "◕", "●", "◕", "◐", "◔"];
+
+export function moonGlyph(phase) {
+  return PHASE_GLYPHS[Math.floor(phase * 8 + 0.5) % 8];
+}
+
 /** Whole days elapsed since an ISO instant — the deck's mission clock. */
 export function missionDay(sinceISO, now = new Date()) {
   const start = new Date(sinceISO).getTime();
@@ -71,6 +89,12 @@ export function missionDay(sinceISO, now = new Date()) {
 
 export function formatUTC(date = new Date()) {
   return date.toISOString().slice(11, 19);
+}
+
+/** Local civil time, HH:MM:SS — the reader's own wall clock, not Greenwich's. */
+export function formatLocal(date = new Date()) {
+  const p = (n) => String(n).padStart(2, "0");
+  return `${p(date.getHours())}:${p(date.getMinutes())}:${p(date.getSeconds())}`;
 }
 
 /** Signed degrees → `+DD°MM'` for a declination readout. */

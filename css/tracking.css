@@ -16,6 +16,15 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
+  /* The other half of the scanline fix (see atmosphere.css): the hover
+     repaint is confined to the card, so it cannot invalidate anything
+     outside it. Purely a containment hint — `overflow: hidden` above
+     already clips the same box, and the brackets sit 6px inside it. */
+  contain: paint;
+  /* Makes the card an inline-size query container so the sweep's `100cqw`
+     (animations.css) resolves to the card's width — see the BUG note on
+     the ::after rule below. */
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
@@ -36,7 +45,18 @@
     transform var(--t-tick) var(--ease-out);
 }
 
-/* ── The one-shot scan sweep ───────────────────────────────────────────── */
+/* ── The one-shot scan sweep ─────────────────────────────────────────────
+
+   BUG — "the scanline effect cuts off midway and pauses at like half".
+   The sweep's `to` keyframe used `translateX(100%)`, which resolves against
+   the band's own 60px box, not the card. The band travelled 120px, stopped
+   a third of the way across, and `animation-fill-mode: both` parked it
+   there — visibly — for the whole hover. It never crossed the card.
+
+   FIX — the card is an inline-size query container, so `100cqw` in the
+   keyframe is the card's width: the band sweeps in, crosses the full card
+   and finishes off its right edge (clipped by `overflow: hidden`), so
+   nothing is parked and the hover reads as one clean scan. */
 .tracked-object::after {
   content: "";
   position: absolute;
@@ -58,7 +78,7 @@
 .tracked-object:hover::after,
 .tracked-object:focus-within::after {
   opacity: 1;
-  animation: sweep-x 300ms linear 1 both;
+  animation: sweep-card var(--t-scan) linear 1 both;
 }
 
 /* ── Targeting brackets ────────────────────────────────────────────────── */

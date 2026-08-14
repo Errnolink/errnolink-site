@@ -8,6 +8,7 @@
 
 import { loadGitHub } from "./data/github.js";
 import { setState, state } from "./state.js";
+import { initScanlines } from "./ui/atmosphere.js";
 import { runBoot } from "./ui/boot.js";
 import { startClocks } from "./ui/clock.js";
 import { renderDossier } from "./ui/dossier.js";
@@ -54,6 +55,10 @@ if (fxLive) html.classList.add("js-reveal");
 /* ── Starfield ───────────────────────────────────────────────────────── */
 const canvas = document.getElementById("sky");
 const sky = canvas ? initStarfield(canvas) : null;
+
+/* ── Scanlines — on their own composited canvas, so a card hover cannot
+     force a mid-interaction re-raster of CSS paint (see atmosphere.css). */
+initScanlines(document.getElementById("scanlines"));
 
 /* ── FX toggle ───────────────────────────────────────────────────────── */
 const fxToggle = document.getElementById("fx-toggle");

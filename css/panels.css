@@ -50,6 +50,15 @@
   color: var(--text-faint);
 }
 
+/* The four clocks read as one cyan row unless each carries its own hue.
+   UTC keeps the default data cyan; JD — raw numbers — is muted grey;
+   GMST, the sky's clock, is amber; the reader's own LOCAL clock is
+   nominal green. Amber and orange were tried for JD+GMST and blurred
+   together; grey keeps the four well apart. */
+.topbar .readout--jd .readout__value { color: var(--text-2); }
+.topbar .readout--gmst .readout__value { color: var(--warning); }
+.topbar .readout--local .readout__value { color: var(--success); }
+
 .fx-toggle {
   min-height: 24px;
   padding-inline: 0.6rem;
@@ -108,8 +117,37 @@
 
 /* ── Panel ─────────────────────────────────────────────────────────────── */
 .panel {
+  position: relative;
   background: var(--panel);
   border: var(--hairline) solid var(--border);
+}
+
+/* Corner ticks — the card brackets' language, held still. Two corners only:
+   the chamfer cuts the other two, and a tick drawn into a cut corner reads
+   as a mistake. */
+.panel::before,
+.panel::after {
+  content: "";
+  position: absolute;
+  width: var(--tick-len);
+  height: var(--tick-len);
+  pointer-events: none;
+  border: 0 solid var(--primary);
+  opacity: 0.45;
+}
+
+.panel::before {
+  top: 0;
+  right: 0;
+  border-top-width: var(--tick-weight);
+  border-right-width: var(--tick-weight);
+}
+
+.panel::after {
+  bottom: 0;
+  left: 0;
+  border-bottom-width: var(--tick-weight);
+  border-left-width: var(--tick-weight);
 }
 
 .panel__head {

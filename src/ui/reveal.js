@@ -6,25 +6,41 @@
  * back up, because a page that keeps re-introducing itself is exhausting.
  */
 
+import { state } from "../state.js";
+
+/**
+ * How long `.gl-run` stays on, ms. Cadence-planner's badge swaps its value
+ * at 75ms and drops the glitch class at 150ms; the extra 50ms here just
+ * covers the wipe, which starts at the same instant rather than after.
+ */
+const GLITCH_MS = 200;
+
 /**
  * Fire the glitch burst on an element and clean up after it.
  *
  * The class is removed when the burst ends, which is the whole performance
- * story: while it is set the element carries two pseudo-element copies and
- * a suppressed halo, and none of that should outlive the animation. The
- * pseudo-copies finish after the base wipe does, so the teardown waits for
- * the longest of the three rather than the first `animationend`.
+ * story: while it is set the element carries two opaque pseudo-element
+ * copies running an infinite 100ms animation and a suppressed halo, and
+ * none of that should outlive the burst. Nothing here waits on
+ * `animationend`, because the spike animations never end — the window is
+ * the point.
  */
 export function runGlitch(el, short = false) {
-  if (!el) return;
+  // Effects off is effects off: the copies are opaque, so a frozen burst
+  // would park two black bands over the heading.
+  if (!el || !state.fx) return;
+
+  // Bind the copies to whatever the element actually says now, so a heading
+  // rewritten by the data layer never glitches with stale text.
+  el.dataset.text = (el.textContent || "").trim();
+
   el.classList.add("gl-run");
   if (short) el.classList.add("gl-run--short");
 
-  const total = short ? 380 : 480;
   setTimeout(() => {
     el.classList.remove("gl-run", "gl-run--short");
     el.style.willChange = "";
-  }, total);
+  }, GLITCH_MS);
 }
 
 export function initReveal() {

@@ -19,8 +19,26 @@ const RAD = Math.PI / 180;
 /** Half the field of view, degrees. Wide enough to hold Orion to Gemini. */
 const HALF_FOV = 55;
 
-/** Drift of the anonymous field layer. Slow enough to read as depth. */
+/** Drift of the anonymous field layers. Slow enough to read as depth. */
 const DRIFT_PX_PER_SEC = 7;
+/** The haze layer is further away, so it crawls. */
+const HAZE_DRIFT_PX_PER_SEC = 3;
+
+/**
+ * The anonymous fill lives in SCREEN space, not on the sphere.
+ *
+ * Distributing it uniformly over the celestial sphere and then projecting
+ * looks correct and photographs badly: a stereographic projection stretches
+ * area away from the tangent point, so the same angular density lands far
+ * fewer points per screen pixel at the edges than at the centre, and the
+ * corners come out near-empty. The catalogue must be projected — those are
+ * real positions — but the fill is invented, so it is generated directly on
+ * a wrapping virtual plane a little larger than the viewport and is even by
+ * construction. Regenerated on resize.
+ */
+const FILL_PAD = 48;
+const FILL_COUNT = 1150;
+const HAZE_COUNT = 320;
 
 /** Real stars go dimmer than body text — the sky is behind the instruments. */
 const INK_HOT = "#cfe8ff";
@@ -48,18 +66,64 @@ function mulberry32(seed) {
  * Faint background field. These are NOT catalogued stars and are never
  * labelled, never twinkle, and are drawn dimmer than everything real — they
  * exist so the sky has the density a real one has between the bright stars.
+ *
+ * Points are bucketed by alpha at build time so a frame sets `globalAlpha`
+ * once per bucket rather than once per point: ~1500 points, ~a dozen state
+ * changes.
+ *
+ * @param {number} w viewport width, CSS px
+ * @param {number} h viewport height, CSS px
+ * @param {number} seed so the two layers do not land on the same lattice
+ * @param {number} count
+ * @param {{ dim:number, magFrom:number, magSpan:number, big:number }} opts
  */
-function buildFieldFill(count = 850) {
-  const rand = mulberry32(0x5eee1e);
-  const fill = [];
+function buildFieldLayer(w, h, seed, count, opts) {
+  const rand = mulberry32(seed);
+  const periodX = w + FILL_PAD * 2;
+  const periodY = h + FILL_PAD * 2;
+  /** @type {Map<string, {alpha:number, size:number, xs:number[], ys:number[]}>} */
+  const buckets = new Map();
+
   for (let i = 0; i < count; i++) {
-    const ra = rand() * 360;
-    // Uniform on the sphere, not uniform in declination.
-    const dec = Math.asin(rand() * 2 - 1) / RAD;
-    const mag = 4.6 + rand() * 1.6;
-    fill.push([ra, dec, mag]);
+    const mag = opts.magFrom + rand() * opts.magSpan;
+    // Quantised to 0.02 so the spread survives but the bucket count does not
+    // explode. The spread itself is the magnitude curve, unchanged.
+    const alpha = Math.round(alphaFor(mag) * opts.dim * 50) / 50;
+    const size = mag < opts.big ? 2 : 1;
+    const key = `${alpha}:${size}`;
+    let bucket = buckets.get(key);
+    if (!bucket) {
+      bucket = { alpha, size, xs: [], ys: [] };
+      buckets.set(key, bucket);
+    }
+    bucket.xs.push(rand() * periodX);
+    bucket.ys.push(rand() * periodY);
   }
-  return fill;
+
+  return {
+    periodX,
+    periodY,
+    buckets: [...buckets.values()].map((b) => ({
+      alpha: b.alpha,
+      size: b.size,
+      xs: Float32Array.from(b.xs),
+      ys: Float32Array.from(b.ys),
+    })),
+  };
+}
+
+/** Wrap into [0, period). */
+function wrap(v, period) {
+  return ((v % period) + period) % period;
+}
+
+/**
+ * Magnitude runs backwards: -1.5 is brilliant, 6 is barely there.
+ * Hoisted out of `initStarfield` because the field layers need it at build
+ * time, before there is a canvas.
+ */
+function alphaFor(mag) {
+  return Math.max(0.12, Math.min(1, 1.15 - (mag + 1.5) / 7.5));
 }
 
 export function initStarfield(canvas) {
@@ -67,7 +131,10 @@ export function initStarfield(canvas) {
   if (!ctx) return { destroy() {} };
 
   const byName = new Map(STARS.map((s, i) => [s[0], i]));
-  const fieldFill = buildFieldFill();
+
+  /** Built in `resize()`, because both layers are sized to the viewport. */
+  let fill = null;
+  let haze = null;
 
   // Twinkle is per-star and out of phase, so the sky shimmers rather than
   // pulsing in unison.
@@ -89,7 +156,6 @@ export function initStarfield(canvas) {
   let scale = 1;
 
   let projected = [];
-  let projectedFill = [];
   let projectedFigures = [];
   let camRa = FIELD.ra;
 
@@ -124,6 +190,20 @@ export function initStarfield(canvas) {
     cy = h / 2;
     // Stereographic radius at the field edge: r = 2·tan(c/2).
     scale = Math.hypot(w, h) / 2 / (2 * Math.tan((HALF_FOV * RAD) / 2));
+    // The fill is screen-space, so it is rebuilt — deterministically — for
+    // every viewport size rather than reprojected.
+    fill = buildFieldLayer(w, h, 0x5eee1e, FILL_COUNT, {
+      dim: 0.55,
+      magFrom: 4.6,
+      magSpan: 1.6,
+      big: 4.9,
+    });
+    haze = buildFieldLayer(w, h, 0x1a7e04, HAZE_COUNT, {
+      dim: 0.34,
+      magFrom: 5.9,
+      magSpan: 0.9,
+      big: -99, // never
+    });
     project();
   }
 
@@ -150,7 +230,6 @@ export function initStarfield(canvas) {
     const dec0 = FIELD.dec * RAD;
 
     projected = STARS.map((s) => projectPoint(s[1], s[2], ra0, dec0));
-    projectedFill = fieldFill.map((s) => projectPoint(s[0], s[1], ra0, dec0));
     projectedFigures = FIGURES.map((f) => projectPoint(f.ra, f.dec, ra0, dec0));
   }
 
@@ -160,9 +239,22 @@ export function initStarfield(canvas) {
     return 1;
   }
 
-  function alphaFor(mag) {
-    // Magnitude runs backwards: -1.5 is brilliant, 6 is barely there.
-    return Math.max(0.12, Math.min(1, 1.15 - (mag + 1.5) / 7.5));
+  /**
+   * One anonymous layer: wrap into the virtual plane, then paint.
+   * Everything is integer-snapped so a 1px point never resolves to a
+   * two-pixel smear.
+   */
+  function drawFieldLayer(layer, offsetX, offsetY) {
+    for (const bucket of layer.buckets) {
+      ctx.globalAlpha = bucket.alpha;
+      ctx.fillStyle = INK_MID;
+      const { xs, ys, size } = bucket;
+      for (let i = 0; i < xs.length; i++) {
+        const x = wrap(xs[i] + offsetX, layer.periodX) - FILL_PAD;
+        const y = wrap(ys[i] + offsetY, layer.periodY) - FILL_PAD;
+        ctx.fillRect(x | 0, y | 0, size, size);
+      }
+    }
   }
 
   function draw(now) {
@@ -187,21 +279,24 @@ export function initStarfield(canvas) {
     const nearY = pointerLerp.y * 2.5 + scrollY * -0.02;
 
     /* ── Field fill ─────────────────────────────────────────────────── */
-    // The anonymous fill drifts continuously and wraps, which is what makes
+    // The anonymous layers drift continuously and wrap, which is what makes
     // the sky read as moving rather than merely twinkling. The catalogue
-    // below it does NOT drift — those stars are real, and they travel at
+    // below them does NOT drift — those stars are real, and they travel at
     // the sidereal rate or not at all.
-    const drift = live ? (now / 1000) * DRIFT_PX_PER_SEC : 0;
-    const period = w + 80;
-    for (let i = 0; i < projectedFill.length; i++) {
-      const p = projectedFill[i];
-      if (!p || p.y + farY < -40 || p.y + farY > h + 40) continue;
-      const raw = p.x + farX + drift;
-      const x = (((raw % period) + period) % period) - 40;
-      ctx.globalAlpha = alphaFor(fieldFill[i][2]) * 0.55;
-      ctx.fillStyle = INK_MID;
-      ctx.fillRect(x | 0, (p.y + farY) | 0, 1, 1);
-    }
+    //
+    // Both axes wrap. Scroll parallax alone can push the field a few hundred
+    // pixels off the top of a long page, and a screen-space layer has no
+    // sphere to fall back on.
+    const seconds = now / 1000;
+    // The haze crawls at less than half the fill's rate and takes half its
+    // pointer parallax: further away, so it moves less. That difference is
+    // the whole reason it is a separate layer.
+    drawFieldLayer(
+      haze,
+      farX * 0.5 + (live ? seconds * HAZE_DRIFT_PX_PER_SEC : 0),
+      farY * 0.5
+    );
+    drawFieldLayer(fill, farX + (live ? seconds * DRIFT_PX_PER_SEC : 0), farY);
 
     /* ── Catalogue layer ────────────────────────────────────────────── */
     ctx.save();

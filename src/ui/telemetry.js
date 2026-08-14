@@ -4,7 +4,7 @@
  */
 
 import { ISS_POLL_MS, ISS_URL } from "../config.js";
-import { moonPhase } from "../data/astro.js";
+import { moonGlyph, moonPhase } from "../data/astro.js";
 import { feedSince, pushSeriesByRepo, rampLevel, smoothSeries } from "../data/normalize.js";
 import { brailleGraph, measureCharWidth } from "./braille.js";
 import { CATALOG_SIZE } from "../data/stars.js";
@@ -31,19 +31,25 @@ function renderLog() {
   if (!list || !state.events.length) return;
 
   const frag = document.createDocumentFragment();
-  for (const ev of state.events.slice(0, 14)) {
+  state.events.slice(0, 14).forEach((ev, i) => {
     const li = el("li", "log__line");
+    // Index drives the reveal stagger; the CSS caps it.
+    li.style.setProperty("--i", String(i));
     li.append(
       el("span", "log__time", (ev.at || "").slice(0, 10)),
       el("span", `log__kind ${KIND_CLASS[ev.kind] ?? "log__kind--other"}`, ev.kind),
       el("span", "log__body", ev.detail)
     );
     frag.append(li);
-  }
+  });
   list.replaceChildren(frag);
 }
 
-const GRAPH_ROWS = 2;
+/** Three character rows = twelve dot rows. Enough to read a shape. */
+const GRAPH_ROWS = 3;
+
+/** U+28C0 — the two bottom dots. A dim run of these is the track's floor. */
+const FLOOR_GLYPH = "⣀";
 
 function renderActivity() {
   const host = document.getElementById("activity-cores");
@@ -51,9 +57,11 @@ function renderActivity() {
   if (!host || !state.repos.length) return;
 
   // Measure before filling: the braille glyphs may resolve to a fallback
-  // face, so the column count has to come from the real advance width.
-  const charW = measureCharWidth(host);
-  const trackW = host.querySelector(".core__graph")?.getBoundingClientRect().width || 320;
+  // face, so the column count has to come from the real advance width — and
+  // from inside a graph, which is the element that carries that font stack.
+  const probeHost = host.querySelector(".core__graph") ?? host;
+  const charW = measureCharWidth(probeHost);
+  const trackW = probeHost.getBoundingClientRect().width || 320;
   const chars = Math.max(12, Math.min(64, Math.floor(trackW / charW)));
 
   const rows = pushSeriesByRepo(state.events, state.repos, chars * 2);
@@ -69,20 +77,36 @@ function renderActivity() {
     // hot end of the ramp has to be earned.
     const ceiling = row.count <= 2 ? 2 : row.count <= 5 ? 3 : row.count <= 10 ? 4 : 5;
     const level = Math.min(rampLevel(row.count, maxCount), ceiling);
+    // The level drives both the graph ink and the edge tick, so it lives on
+    // the row rather than on the graph.
+    line.dataset.level = String(level);
 
     const id = el("span", "core__id label", state.repos[i].designation.replace("OBJ-", ""));
     const name = el("span", "core__name label", row.repo);
 
+    const track = el("div", "core__track");
+
+    // The floor is chrome, not data: a span with no pushes has to read as a
+    // flatline rather than as an empty box. It carries the graph's full row
+    // count so the two `pre`s are the same box and the dot rows line up.
+    const floor = el(
+      "pre",
+      "core__floor",
+      "\n".repeat(GRAPH_ROWS - 1) + FLOOR_GLYPH.repeat(chars)
+    );
+    floor.setAttribute("aria-hidden", "true");
+
     const graph = el("pre", "core__graph");
-    graph.dataset.level = String(level);
     // Each track is scaled to its own peak, so a quiet object still shows
     // its shape instead of flattening against the busiest one.
     graph.textContent = brailleGraph(smoothSeries(row.series), GRAPH_ROWS).join("\n");
     graph.setAttribute("aria-hidden", "true");
 
+    track.append(floor, graph);
+
     const count = el("span", "core__count", String(row.count));
 
-    line.append(id, name, graph, count);
+    line.append(id, name, track, count);
     line.title = `${row.repo}: ${row.count} push${row.count === 1 ? "" : "es"} in the feed window`;
     frag.append(line);
   });
@@ -106,13 +130,20 @@ function renderActivity() {
 
 function renderAstro() {
   const fx = state.fx;
-  const { name, illumination } = moonPhase();
+  const { phase, name, illumination } = moonPhase();
+  const lit = Math.round(illumination * 100);
   setValue(document.getElementById("a-moon"), name, fx, 0);
-  setValue(document.getElementById("a-moonpct"), `${Math.round(illumination * 100)}%`, fx, 1);
+  setValue(document.getElementById("a-moonpct"), `${lit}%`, fx, 1);
   setValue(document.getElementById("a-catalog"), `${CATALOG_SIZE} STARS`, fx, 2);
 
   const heroCatalog = document.getElementById("hero-catalog");
   if (heroCatalog) heroCatalog.textContent = String(CATALOG_SIZE);
+
+  // The hero HUD gets the glyph and the number; the observation deck panel
+  // below carries the name. No swap animation here — the strip is chrome
+  // the reader is already looking at when the page settles.
+  const heroMoon = document.getElementById("hero-moon");
+  if (heroMoon) heroMoon.textContent = `${moonGlyph(phase)} ${lit}%`;
 }
 
 /**
