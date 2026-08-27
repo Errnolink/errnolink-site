@@ -12,6 +12,7 @@ import { initScanlines } from "./ui/atmosphere.js";
 import { runBoot } from "./ui/boot.js";
 import { startClocks } from "./ui/clock.js";
 import { renderDossier } from "./ui/dossier.js";
+import { initRail } from "./ui/rail.js";
 import { initReveal, runGlitch } from "./ui/reveal.js";
 import { initStarfield } from "./ui/starfield.js";
 import { renderStatus } from "./ui/status.js";
@@ -56,6 +57,15 @@ if (fxLive) html.classList.add("js-reveal");
 const canvas = document.getElementById("sky");
 const sky = canvas ? initStarfield(canvas) : null;
 
+/* The sky does not know the DOM is there. PROCYON was landing inside the E
+   of the wordmark and ORION on the subtitle line — two texts fighting at
+   9px and 128px. These are the elements the label pass routes around; the
+   stars themselves still draw behind them. */
+sky?.setKeepOut([
+  document.querySelector(".hero__top"),
+  document.querySelector(".hero__strip"),
+]);
+
 /* ── Scanlines — on their own composited canvas, so a card hover cannot
      force a mid-interaction re-raster of CSS paint (see atmosphere.css). */
 initScanlines(document.getElementById("scanlines"));
@@ -90,6 +100,17 @@ fxToggle?.addEventListener("click", () => {
 });
 
 paintFxToggle();
+
+/* ── The scroll cue is spent once it has been taken ────────────────── */
+const cue = document.querySelector(".hero__cue");
+if (cue) {
+  const spend = () => cue.classList.add("is-spent");
+  // Either gesture counts as "taken": the click is the cue working, the
+  // scroll is the reader not needing it. An indefinite pulse after either
+  // is nagging.
+  window.addEventListener("scroll", spend, { once: true, passive: true });
+  cue.addEventListener("click", spend, { once: true });
+}
 
 /* ── Cursor readout ──────────────────────────────────────────────────── */
 const cursorOut = document.getElementById("cursor-readout");
@@ -141,6 +162,7 @@ const dataReady = loadGitHub().catch((err) => {
 
 runBoot(fxLive).then((played) => {
   initReveal();
+  initRail();
   // With the boot played, the wordmark has already made its entrance.
   if (!played && fxLive) {
     runGlitch(document.getElementById("hero-stamp"));

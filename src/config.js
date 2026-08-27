@@ -62,6 +62,21 @@ export const CURATION = {
     classification: "Visualiser // HTML",
     blurb: "A theme visualiser for inspecting palette and prompt configurations side by side.",
   },
+  "x-discord-relay": {
+    order: 6,
+    classification: "Relay // JavaScript",
+    blurb:
+      "Relays X posts into Discord as yourself — a userscript send bar with fixupx " +
+      "links, plus an optional Vencord app mode. No bot, no webhook, no token.",
+  },
+  "errnolink-site": {
+    order: 7,
+    classification: "Station // JavaScript",
+    blurb:
+      "This page. An orbital observation deck over a real star catalogue, with the " +
+      "operator's public activity read as telemetry. No build step, no framework.",
+    uplink: "https://errnolink.github.io/errnolink-site/",
+  },
 };
 
 /** Language → short classification, for repos not in the table. */

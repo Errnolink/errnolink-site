@@ -2,11 +2,18 @@
    TELEMETRY — activity bars, observation readouts, event log.
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/* Two columns, both full. The old arrangement was `align-items: start`
+   with the log spanning underneath, which stranded the 230px observation
+   deck beside a 545px activity panel and left ~320px of empty column
+   staring back. The deck and the log now stack in the right column and the
+   activity tracks take the left column's full height, so nothing is
+   orphaned and the log gets the tall shape a log wants. */
 .telemetry {
   display: grid;
-  grid-template-columns: 1.6fr 1fr;
+  grid-template-columns: 1.7fr 1fr;
+  grid-template-rows: auto 1fr;
   gap: 1.25rem;
-  align-items: start;
+  align-items: stretch;
 }
 
 /* A grid item will not shrink below its min-content unless told to, and the
@@ -16,8 +23,46 @@
   min-width: 0;
 }
 
+.telemetry__activity { grid-column: 1; grid-row: 1 / span 2; }
+
+/* Stretching the activity panel to the right column's height fixed one void
+   and opened a smaller one under the axis. The cores box takes the leftover
+   height instead and distributes it across its rows — which is what btop's
+   per-core stack does anyway: the rows own the panel, they do not sit at the
+   top of it. */
+.telemetry__activity {
+  display: flex;
+  flex-direction: column;
+}
+
+.telemetry__activity .panel__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.telemetry__activity .cores {
+  flex: 1;
+  /* min-content is the floor, so a short viewport packs rather than clips. */
+  grid-auto-rows: minmax(min-content, 1fr);
+}
+.telemetry__astro    { grid-column: 2; grid-row: 1; }
+.telemetry__log      { grid-column: 2; grid-row: 2; }
+
+/* The log panel is the one that has to give its body the leftover height,
+   so it is a column and its body is the flexing child. `min-height: 0` is
+   what lets the scroll container actually shrink inside it. */
 .telemetry__log {
-  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.telemetry__log .panel__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
 }
 
 /* ── Commit activity ───────────────────────────────────────────────────── */
@@ -80,10 +125,10 @@
 
 .core {
   display: grid;
-  /* Wide enough for `nerv-geo-monitor` at this tracking; the one name longer
-     than that ellipses, which is better than giving every row the column
-     the longest name would want. */
-  grid-template-columns: 2.5ch minmax(0, 19ch) 1fr auto;
+  /* 19ch fitted `nerv-geo-monitor` and ellipsed `omp-theme-visualiser`,
+     which is the operator's own repo — the longest name on the list is
+     known, so the column is sized for it. 22ch costs the track ~35px. */
+  grid-template-columns: 2.5ch minmax(0, 22ch) 1fr auto;
   align-items: center;
   gap: 0.8rem;
   padding-block: 0.4rem;
@@ -109,6 +154,11 @@
   position: relative;
   min-width: 0;
   overflow: hidden;
+  /* The well takes the whole row now that the rows share the panel height.
+     A small box floating in a tall row reads as a mistake; a tall well with
+     the trace centred in it reads as the instrument it is. */
+  align-self: stretch;
+  align-content: center;
   padding: 4px 4px 4px 8px;
   background: var(--well);
   border: var(--hairline) solid var(--border);
@@ -181,6 +231,12 @@
 /* ── The count readout ─────────────────────────────────────────────────── */
 .core__count {
   min-width: 5ch;
+  /* Matches the well beside it, so the row is two cells of equal height and
+     one label, not three things of three sizes. */
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   padding: 0.15rem 0.4rem;
   text-align: right;
   font-size: var(--size-label);
@@ -208,12 +264,40 @@
 }
 
 /* ── Event log ─────────────────────────────────────────────────────────── */
+/* The log used to be `max-height: 260px` against a ~29.8px row: 8.7 rows,
+   so the last line was sliced through its glyphs and read as broken markup
+   rather than as "there is more below". It fills its grid cell now, and the
+   bottom edge is masked to a fade — a half-row under a fade is an
+   affordance, a half-row under a hard cut is a bug. The mask is dropped
+   when the reader reaches the end, so the final line is never dimmed. */
 .log {
+  flex: 1;
   display: grid;
+  align-content: start;
+  min-width: 0;
+  /* An `auto` grid track is max-content-floored: it grows to fit its widest
+     item and is never clamped back to the container, so a long branch name
+     pushed a 468px row through a 321px panel and .log__body's ellipsis never
+     got the chance to engage. `minmax(0, 1fr)` is the same track with the
+     floor removed — the row shrinks, and the ellipsis does its job. It is
+     the pattern .core__track already uses for the same reason. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.2rem;
-  max-height: 260px;
+  min-height: 180px;
   overflow-y: auto;
   font-size: 0.8125rem;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 34px), transparent 100%);
+}
+
+.log.is-end {
+  mask-image: none;
+}
+
+/* Scroll affordance in the panel head — the mask says "more", this says
+   how much more. */
+.log__more {
+  margin-left: 0.75ch;
+  color: var(--text-faint);
 }
 
 .log__line {

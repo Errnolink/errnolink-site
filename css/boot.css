@@ -87,13 +87,57 @@
 .hero {
   min-height: calc(100svh - var(--topbar-h));
   display: flex;
-  align-items: center;
+  /* Stretch, not centre. The wrap owns the vertical distribution now. */
+  align-items: stretch;
   padding-block: clamp(2rem, 6vh, 4rem);
 }
 
+/* Top block up, instrument rail down, sky in the gap between them. The old
+   `align-items: center` parked a 287px content block in the middle of an
+   856px box; nothing anchored to an edge, so the composition had no frame. */
 .hero__wrap {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2rem;
 }
+
+.hero__top {
+  position: relative;
+  padding: 0.75rem 1rem 0.75rem 0;
+}
+
+/* ── Targeting reticle ──────────────────────────────────────────────────
+
+   Four corner ticks bracketing the wordmark: the tracked-object lock-on
+   language, applied to the station itself. Static — the cards earn the
+   fly-in because you acquire them; the hero is already acquired. */
+.hero__reticle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  /* Pulled outboard of the content box. Flush with `inset: 0` the left
+     bracket landed on the O of ORBITAL — a reticle drawn through the thing
+     it is bracketing is not bracketing it. The wordmark itself stays on the
+     page's left alignment; only the ticks step outside it. */
+  left: -1.35rem;
+  width: min(calc(100% + 2.7rem), 48rem);
+  pointer-events: none;
+}
+
+.hero__reticle i {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 0 solid var(--primary);
+  opacity: 0.5;
+}
+
+.hero__reticle i:nth-child(1) { top: 0; left: 0; border-top-width: var(--tick-weight); border-left-width: var(--tick-weight); }
+.hero__reticle i:nth-child(2) { top: 0; right: 0; border-top-width: var(--tick-weight); border-right-width: var(--tick-weight); }
+.hero__reticle i:nth-child(3) { bottom: 0; left: 0; border-bottom-width: var(--tick-weight); border-left-width: var(--tick-weight); }
+.hero__reticle i:nth-child(4) { bottom: 0; right: 0; border-bottom-width: var(--tick-weight); border-right-width: var(--tick-weight); }
 
 .hero__title {
   display: flex;
@@ -110,8 +154,14 @@
   line-height: 0.95;
   font-weight: 400;
   color: var(--text);
-  /* The one sanctioned wordmark halo. There is no third glow on this site. */
-  text-shadow: 0 0 18px rgba(255, 152, 48, 0.45);
+  /* The one sanctioned wordmark halo. There is no third glow on this site.
+     Was 18px/0.45, which made the sharpest thing on the page the softest —
+     everything around it is a hairline. A tight 10px bloom plus a hard 1px
+     orange edge reads as phosphor bleed off a lit tube rather than as a
+     blur applied to text. */
+  text-shadow:
+    0 0 1px rgba(255, 152, 48, 0.9),
+    0 0 10px rgba(255, 152, 48, 0.3);
 }
 
 .hero__jp {
@@ -128,18 +178,33 @@
   color: var(--text-dim);
 }
 
-.hero__strip {
+/* ── The instrument rail ────────────────────────────────────────────────
+   Full width, pinned to the bottom of the viewport. This is the element
+   that replaced 284px of empty sky. */
+.hero__foot {
   display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.hero__strip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   flex-wrap: wrap;
   gap: 0.5rem 1.5rem;
-  margin-top: 2rem;
-  padding: 0.7rem 1rem;
-  /* The one place glass is earned: this chip sits over live content. */
+  padding: 0.8rem 1.1rem 0.8rem 1.5rem;
+  /* The one place glass is earned: this rail sits over live content. */
   background: rgba(10, 10, 12, 0.72);
   backdrop-filter: blur(6px);
   border: var(--hairline) solid var(--border);
-  width: fit-content;
-  max-width: 100%;
+}
+
+.hero__readouts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.75rem;
 }
 
 .hero__strip .led {
@@ -153,12 +218,12 @@
 }
 
 .hero__cue {
-  display: inline-block;
-  margin-top: 2.5rem;
+  flex: none;
   font-size: var(--size-label);
   letter-spacing: var(--track-label);
   color: var(--text-dim);
   animation: pulse var(--t-pulse) var(--ease-mech) infinite;
+  transition: opacity var(--t-enter) var(--ease-mech);
 }
 
 .hero__cue::after {
@@ -168,4 +233,12 @@
 .hero__cue:hover,
 .hero__cue:focus-visible {
   color: var(--primary);
+}
+
+/* A cue that keeps pulsing after you have taken it is nagging. Dropped by
+   main.js on the first scroll, and it does not come back. */
+.hero__cue.is-spent {
+  opacity: 0;
+  pointer-events: none;
+  animation: none;
 }

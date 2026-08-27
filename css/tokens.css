@@ -22,7 +22,10 @@
   --text: #e8e8e4;
   --text-2: #b8b8b2;
   --text-dim: #8a8a85;
-  --text-faint: #6a6a65;
+  /* Was #6a6a65 — 3.86:1 on black, under AA, and this token carries the 9px
+     ornaments (.core__id, .obj__desig, .panel__meta, .sec-head__idx). At
+     #767671 it clears 4.5:1 and the mood is indistinguishable. */
+  --text-faint: #767671;
 
   /* ── Command chrome (orange) ─────────────────────────────────────────── */
   --primary: #ff9830;
@@ -36,8 +39,16 @@
   --success: #50ff50;
   --warning: #ffb700;
   --danger: #ff3030;
-  /* Reserved. Not decorative — held for one future level-5 state. */
+
+  /* ── Unresolved (violet) ─────────────────────────────────────────────
+     Unit-01's hue, and the only one on the page that is not a measurement.
+     It marks a figure the station cannot currently vouch for: a captured
+     number, an unacquired signal, a section not yet visited. Never used for
+     a live reading — that is the whole distinction it carries.
+     `--violet` is the fill/stroke hue; `--violet-hi` is the text tier,
+     because #7c3aed is 3.0:1 on black and would fail as type. */
   --violet: #7c3aed;
+  --violet-hi: #a78bfa;
 
   /* ── Severity ramp: magnitude, not judgement ─────────────────────────── */
   --ramp-0: #1f1f23;
@@ -65,6 +76,10 @@
   --size-hero: clamp(3rem, 12vw, 8rem);
   --size-stamp-lg: clamp(1.6rem, 4vw, 2.6rem);
   --size-stamp: 1.25rem;
+  /* The page speaks in two places — the dossier bio and the comms line —
+     and without a tier between body and the stamps they read as more
+     readout. One step, used exactly twice. */
+  --size-lead: 1rem;       /* 16px */
   --size-body: 0.875rem;   /* 14px */
   --size-label: 0.6875rem; /* 11px — the floor for anything read */
   --size-orn: 0.5625rem;   /* 9px  — bracket ornaments and readouts only */
@@ -97,6 +112,9 @@
   /* Corner tick ornaments: the card brackets' stroke, held still. */
   --tick-len: 10px;
   --tick-weight: 2px;
+  /* The section rail down the right edge. Reserved as a scroll-gutter so a
+     full-bleed section cannot run under it. */
+  --rail-w: 30px;
 
   /* ── Z-layers ────────────────────────────────────────────────────────── */
   --z-sky: 0;
@@ -105,6 +123,7 @@
   --z-backdrop: 0;
   --z-chrome: 1;
   --z-topbar: 50;
+  --z-rail: 60;
   --z-atmosphere: 900;
   --z-boot: 1000;
 }

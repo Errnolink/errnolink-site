@@ -179,6 +179,14 @@
   margin-left: auto;
 }
 
+/* The contact light. It used to be `led--nominal` on all seven cards, which
+   taught the reader to ignore it and diluted the ramp everywhere else. It is
+   driven by days-since-CONTACT now (tracking.js), and it does not blink —
+   see the `--static` note in base.css. */
+.obj__contact {
+  position: relative;
+}
+
 .obj__class {
   color: var(--text-faint);
 }
@@ -216,4 +224,93 @@
 
 .obj__uplink {
   color: var(--success);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SURVEY PLATE — the grid orphan, answered.
+
+   Seven objects into three columns is 3 + 3 + 1, and that lone card was the
+   most awkward moment on the page. Stretching a card to fill the gap would
+   be a lie about its importance; the honest fill is chrome. The plate takes
+   whatever columns are left in the final row and states the survey's own
+   status, which is the one thing on this page that is about the list rather
+   than about an object in it.
+
+   The span is set by tracking.js, not here. `grid-column-end: -1` alone
+   places the plate in the LAST column only — with `grid-column-start: auto`
+   the spec gives the item a span of 1 and hangs it off that end line, so a
+   7-card grid put the plate in column 3 and left column 2 empty, trading one
+   orphan for two. The column count is a fact only the laid-out grid knows,
+   so the span is computed from it. With scripting off the plate keeps its
+   natural single cell, which is correct for the five baked cards.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.objects__plate {
+  position: relative;
+  /* The plate takes whatever columns the last row left over, so its own
+     layout has to work at one cell wide and at three. auto-fit does that
+     without a breakpoint: it is a stacked note in a single cell and a
+     two-up sheet when it inherits half a row. */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  align-content: center;
+  gap: 0.55rem 2rem;
+  padding: 1.1rem 1.4rem 1.1rem 1.6rem;
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(124, 58, 237, 0.05) 0 1px,
+      transparent 1px 9px
+    ),
+    var(--well);
+  border: var(--hairline) dashed var(--border-hi);
+}
+
+/* Dashed, because it is not an object: the frame says "this cell is not a
+   record" before a word of it is read. */
+.objects__plate .hazard--edge {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--violet) 0 6px,
+    var(--bg) 6px 12px
+  );
+}
+
+.plate__title {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 0.75ch;
+  margin-bottom: 0.2rem;
+  color: var(--violet-hi);
+}
+
+.plate__rows {
+  display: grid;
+  align-content: start;
+  gap: 0.3rem;
+}
+
+.plate__row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75ch;
+  border-bottom: var(--hairline) dotted var(--border);
+  padding-bottom: 0.25rem;
+}
+
+.plate__row span:last-child {
+  margin-left: auto;
+  font-size: var(--size-label);
+  font-weight: 500;
+  color: var(--cyan);
+}
+
+.plate__note {
+  align-self: start;
+  font-size: var(--size-orn);
+  line-height: 1.7;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  max-width: 44ch;
 }

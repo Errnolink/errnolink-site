@@ -1,0 +1,114 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   SECTION RAIL — the wayfinding that was missing.
+
+   3,856px of page, four sections, and the most valuable slot on the site —
+   the centre of the topbar — held four clocks. The clocks stay, because they
+   are the station's own instruments; the navigation moves to the right edge,
+   where a vertical tick rail is both the correct shape for a scroll position
+   and squarely in this design language.
+
+   A tick is violet until its section has been reached and cyan after, which
+   is the same distinction violet carries everywhere else: unresolved, then
+   resolved. The section you are in is orange, because orange is command
+   chrome and "where you are" is the one navigational fact you act on.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.rail {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  z-index: var(--z-rail);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  padding: 0.75rem 0.6rem;
+  /* No panel behind it: the rail floats on the sky like the wordmark does. */
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.72), transparent);
+}
+
+.rail__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75ch;
+  padding: 0.2rem 0;
+  color: var(--text-faint);
+}
+
+/* The wipe underline from base.css is for prose links, not for chrome. */
+.rail__item::after {
+  content: none;
+}
+
+.rail__name {
+  font-size: var(--size-orn);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+  /* Collapsed by default: the rail is a position indicator at rest and a
+     menu only while you are pointed at it. Width, not opacity, so the ticks
+     stay hard against the edge until they are asked for. */
+  max-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    max-width var(--t-exit) var(--ease-mech),
+    opacity var(--t-exit) var(--ease-mech);
+}
+
+.rail:hover .rail__name,
+.rail:focus-within .rail__name,
+.rail__item:focus-visible .rail__name {
+  max-width: 14ch;
+  opacity: 1;
+  transition:
+    max-width var(--t-enter) var(--ease-out),
+    opacity var(--t-enter) var(--ease-out);
+}
+
+/* The tick itself. 2px of violet, unreached. */
+.rail__tick {
+  flex: none;
+  width: 16px;
+  height: var(--tick-weight);
+  background: var(--violet);
+  transition:
+    width var(--t-exit) var(--ease-mech),
+    background-color var(--t-exit) var(--ease-mech);
+}
+
+.rail__item.is-seen .rail__tick {
+  background: var(--cyan);
+}
+
+.rail__item.is-active .rail__tick {
+  width: 26px;
+  background: var(--primary);
+  box-shadow: 0 0 8px rgba(255, 152, 48, 0.4);
+}
+
+.rail__item.is-active {
+  color: var(--primary-hot);
+}
+
+.rail__item:hover .rail__tick,
+.rail__item:focus-visible .rail__tick {
+  width: 26px;
+}
+
+.rail__item:hover,
+.rail__item:focus-visible {
+  color: var(--text);
+}
+
+/* The rail is a convenience over a page that already scrolls; on a phone it
+   would eat a thumb's worth of the right edge to say what the section
+   headers already say. */
+@media (max-width: 900px) {
+  .rail {
+    display: none;
+  }
+}

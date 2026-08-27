@@ -48,7 +48,7 @@
 
   <div class="topbar__clocks">
     <span class="readout"><span class="readout__label">UTC</span><span class="readout__value" id="clock-utc">--:--:--</span></span>
-    <span class="readout readout--jd"><span class="readout__label">JD</span><span class="readout__value" id="clock-jd">----------.-----</span></span>
+    <span class="readout readout--jd topbar__jd"><span class="readout__label">JD</span><span class="readout__value" id="clock-jd">----------.-----</span></span>
     <span class="readout topbar__gmst readout--gmst"><span class="readout__label">GMST</span><span class="readout__value" id="clock-gmst">--:--:--</span></span>
     <span class="readout topbar__local readout--local"><span class="readout__label">LOCAL</span><span class="readout__value" id="clock-local">--:--:--</span></span>
   </div>
@@ -60,32 +60,54 @@
     </button>
     <span class="feed">
       <span class="led led--idle" id="feed-led"></span>
-      <span class="feed__text" id="feed-status">TELEMETRY: SNAPSHOT</span>
+      <span class="feed__text" id="feed-status"><span class="feed__prefix">TELEMETRY:</span><span> SNAPSHOT</span></span>
     </span>
   </div>
 </header>
+
+<!-- ═══ z60 — SECTION RAIL ═════════════════════════════════════ -->
+<nav class="rail" id="rail" aria-label="Sections">
+  <a class="rail__item" href="#hero"><span class="rail__name">Station</span><span class="rail__tick" aria-hidden="true"></span></a>
+  <a class="rail__item" href="#dossier"><span class="rail__name">Sec 01 · Dossier</span><span class="rail__tick" aria-hidden="true"></span></a>
+  <a class="rail__item" href="#tracking"><span class="rail__name">Sec 02 · Objects</span><span class="rail__tick" aria-hidden="true"></span></a>
+  <a class="rail__item" href="#telemetry"><span class="rail__name">Sec 03 · Telemetry</span><span class="rail__tick" aria-hidden="true"></span></a>
+  <a class="rail__item" href="#comms"><span class="rail__name">Sec 04 · Comms</span><span class="rail__tick" aria-hidden="true"></span></a>
+</nav>
 
 <main class="shell">
 
   <!-- ═══ HERO ═════════════════════════════════════════════════════════ -->
   <section id="hero" class="hero">
     <div class="wrap hero__wrap">
-      <div class="hero__title">
-        <h1 class="hero__stamp stamp" id="hero-stamp" data-text="ERRNOLINK">ERRNOLINK</h1>
-        <span class="hero__jp jp" aria-hidden="true">軌道観測局</span>
+
+      <!-- Top-anchored. The wordmark used to float dead-centre in an 856px
+           box with 285px of nothing above and below it; the block is pinned
+           to the top now and the instrument rail holds the bottom, which is
+           how a console composes. -->
+      <div class="hero__top">
+        <span class="hero__reticle" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <div class="hero__title">
+          <h1 class="hero__stamp stamp" id="hero-stamp" data-text="ERRNOLINK">ERRNOLINK</h1>
+          <span class="hero__jp jp" aria-hidden="true">軌道観測局</span>
+        </div>
+        <p class="hero__sub">ORBITAL OBSERVATION STATION // ERRNOLINK &mdash; 77.9&deg;S 166.7&deg;E &mdash; EST. 2021</p>
       </div>
 
-      <p class="hero__sub">ORBITAL OBSERVATION STATION // ERRNOLINK &mdash; 77.9&deg;S 166.7&deg;E &mdash; EST. 2021</p>
-
-      <div class="hero__strip">
-        <span class="readout"><span class="readout__label">GMST</span><span class="readout__value" id="hero-gmst">--:--:--</span></span>
-        <span class="readout"><span class="readout__label">Field</span><span class="readout__value">RA 05H36M DEC +00&deg;</span></span>
-        <span class="readout"><span class="readout__label">Catalog</span><span class="readout__value" id="hero-catalog">---</span></span>
-        <span class="readout"><span class="readout__label">Moon</span><span class="readout__value hero__moon" id="hero-moon">&#9675; ---</span></span>
-        <span class="readout"><span class="readout__label">Uplink</span><span class="readout__value"><span class="led led--idle" id="hero-led"></span></span></span>
+      <!-- Bottom-anchored instrument rail. -->
+      <div class="hero__foot">
+        <div class="hero__strip chamfer-tr">
+          <span class="hazard hazard--edge" aria-hidden="true"></span>
+          <div class="hero__readouts">
+            <span class="readout"><span class="readout__label">GMST</span><span class="readout__value" id="hero-gmst">--:--:--</span></span>
+            <span class="readout"><span class="readout__label">Field</span><span class="readout__value">RA 05H36M DEC +00&deg;</span></span>
+            <span class="readout"><span class="readout__label">Catalog</span><span class="readout__value" id="hero-catalog">---</span></span>
+            <span class="readout"><span class="readout__label">Moon</span><span class="readout__value hero__moon" id="hero-moon">&#9675; ---</span></span>
+            <span class="readout"><span class="readout__label">Uplink</span><span class="readout__value"><span class="led led--idle" id="hero-led"></span></span></span>
+          </div>
+          <a class="hero__cue" href="#dossier" aria-label="Scroll to the operator dossier">&#9660; SCROLL FOR TELEMETRY</a>
+        </div>
       </div>
 
-      <a class="hero__cue" href="#dossier" aria-label="Scroll to telemetry">&#9660; SCROLL FOR TELEMETRY</a>
     </div>
   </section>
 
@@ -115,7 +137,7 @@
           </figure>
 
           <div class="dossier__data">
-            <p class="dossier__bio">
+            <p class="dossier__bio lead">
               Builds tactical, high-density interfaces &mdash; design systems, telemetry terminals and
               desktop tools. Author of <strong>Kanso</strong>, an in-house design language distilled from
               NERV-UI, Evangelion interface design, btop telemetry and cyberpunk chrome.
@@ -128,7 +150,7 @@
               <div class="datalist__row"><dt class="label">Mission day</dt><dd class="value value--hot" id="d-missionday">1938</dd></div>
               <div class="datalist__row"><dt class="label">Tracked objects</dt><dd class="value" id="d-repos">5</dd></div>
               <div class="datalist__row"><dt class="label">Followers</dt><dd class="value" id="d-followers">4</dd></div>
-              <div class="datalist__row"><dt class="label">Commits logged</dt><dd class="value" id="d-commits">88+</dd></div>
+              <div class="datalist__row"><dt class="label">Commits logged</dt><dd class="value value--unresolved" id="d-commits">88+</dd></div>
             </dl>
           </div>
         </div>
@@ -154,7 +176,7 @@
           <div class="obj__head">
             <span class="obj__desig label">OBJ-01</span>
             <h3 class="obj__name stamp">KANSO</h3>
-            <span class="led led--nominal"></span>
+            <span class="led led--unresolved led--static" title="Contact age unresolved — baked snapshot"></span>
           </div>
           <p class="obj__class label">Design language // TypeScript</p>
           <p class="obj__desc">An in-house design language: tokens and 41 React components distilled from NERV-UI, Evangelion interface design, btop telemetry and cyberpunk chrome. Two design generations behind one attribute toggle.</p>
@@ -174,7 +196,7 @@
           <div class="obj__head">
             <span class="obj__desig label">OBJ-02</span>
             <h3 class="obj__name stamp">SEELE</h3>
-            <span class="led led--nominal"></span>
+            <span class="led led--unresolved led--static" title="Contact age unresolved — baked snapshot"></span>
           </div>
           <p class="obj__class label">Electron terminal // TypeScript</p>
           <p class="obj__desc">NERV &times; cyberpunk media file scanner and viewer. Electron + React + TypeScript; a tactical control-room UI for browsing local image and video libraries.</p>
@@ -194,7 +216,7 @@
           <div class="obj__head">
             <span class="obj__desig label">OBJ-03</span>
             <h3 class="obj__name stamp">NERV-GEO-MONITOR</h3>
-            <span class="led led--nominal"></span>
+            <span class="led led--unresolved led--static" title="Contact age unresolved — baked snapshot"></span>
           </div>
           <p class="obj__class label">Live terminal // JavaScript</p>
           <p class="obj__desc">A real-time global monitoring terminal for air quality and atmospheric pollutants, built with a reactive NERV terminal interface and Open-Meteo telemetry.</p>
@@ -215,7 +237,7 @@
           <div class="obj__head">
             <span class="obj__desig label">OBJ-04</span>
             <h3 class="obj__name stamp">CADENCE-PLANNER</h3>
-            <span class="led led--nominal"></span>
+            <span class="led led--unresolved led--static" title="Contact age unresolved — baked snapshot"></span>
           </div>
           <p class="obj__class label">Planner // JavaScript</p>
           <p class="obj__desc">A planning interface with its own complete design system &mdash; token-driven theming, a nine-effect registry, contrast-verified text tiers and a density scale.</p>
@@ -236,7 +258,7 @@
           <div class="obj__head">
             <span class="obj__desig label">OBJ-05</span>
             <h3 class="obj__name stamp">OMP-THEME-VISUALISER</h3>
-            <span class="led led--nominal"></span>
+            <span class="led led--unresolved led--static" title="Contact age unresolved — baked snapshot"></span>
           </div>
           <p class="obj__class label">Visualiser // HTML</p>
           <p class="obj__desc">A theme visualiser for inspecting palette and prompt configurations side by side.</p>
@@ -250,12 +272,22 @@
           </div>
         </li>
 
+        <li class="objects__plate" id="objects-plate" aria-hidden="true">
+          <span class="hazard hazard--edge"></span>
+          <p class="plate__title label">▣ Survey complete</p>
+          <div class="plate__rows">
+            <div class="plate__row"><span class="label">Objects tracked</span><span id="plate-count">5</span></div>
+            <div class="plate__row"><span class="label">Last contact</span><span id="plate-last">—</span></div>
+            <div class="plate__row"><span class="label">Next sweep</span><span id="plate-next">CONTINUOUS</span></div>
+          </div>
+          <p class="plate__note">Catalogue is the operator&rsquo;s public repositories, ordered by last push. Nothing here is curated for effect.</p>
+        </li>
       </ul>
     </div>
   </section>
 
   <!-- ═══ TELEMETRY ════════════════════════════════════════════════════ -->
-  <section id="telemetry" class="section">
+  <section id="telemetry" class="section section--console">
     <div class="wrap">
       <header class="sec-head">
         <h2 class="sec-head__title stamp" data-text="TELEMETRY">TELEMETRY</h2>
@@ -365,7 +397,7 @@
               <div class="datalist__row"><dt class="label">Lunar phase</dt><dd class="value" id="a-moon">---</dd></div>
               <div class="datalist__row"><dt class="label">Illumination</dt><dd class="value" id="a-moonpct">---</dd></div>
               <div class="datalist__row"><dt class="label">Catalog</dt><dd class="value" id="a-catalog">---</dd></div>
-              <div class="datalist__row"><dt class="label">ISS track</dt><dd class="value" id="a-iss">ACQUIRING&hellip;</dd></div>
+              <div class="datalist__row"><dt class="label">ISS track</dt><dd class="value value--unresolved" id="a-iss">ACQUIRING&hellip;</dd></div>
             </dl>
           </div>
         </div>
@@ -374,6 +406,7 @@
           <div class="panel__head">
             <span class="led led--nominal" id="log-led"></span>
             <span class="panel__title label">Event log</span>
+            <span class="label log__more" id="log-count"></span>
             <span class="panel__meta label" id="log-source">SNAPSHOT</span>
           </div>
           <div class="panel__body">
@@ -403,7 +436,7 @@
 
       <div class="panel chamfer comms">
         <div class="panel__body comms__body">
-          <p class="comms__line">Open a channel &mdash; source, issues and everything in flight are on GitHub.</p>
+          <p class="comms__line lead">Open a channel &mdash; source, issues and everything in flight are on GitHub.</p>
           <a class="btn comms__btn" href="https://github.com/Errnolink" target="_blank" rel="noopener noreferrer">
             GITHUB / ERRNOLINK <span aria-hidden="true">&#8599;</span>
           </a>

@@ -22,23 +22,23 @@ export function renderStatus() {
   const feed = badge?.closest(".feed");
   if (!badge || !led) return;
 
-  let text;
+  let stateText;
   let ledClass;
   let feedClass;
   let title = "";
 
   if (state.source === "live") {
-    text = "TELEMETRY: LIVE";
+    stateText = "LIVE";
     ledClass = "led led--nominal";
     feedClass = "feed feed--live";
     title = "Fetched from the GitHub API just now.";
   } else if (state.source === "cache") {
-    text = `TELEMETRY: CACHED · ${state.fetchedAt ? minutesAgo(state.fetchedAt) : "UNKNOWN"}`;
+    stateText = `CACHED · ${state.fetchedAt ? minutesAgo(state.fetchedAt) : "UNKNOWN"}`;
     ledClass = "led led--caution";
     feedClass = "feed feed--cached";
     title = "Served from this browser's cache; the live fetch did not complete.";
   } else {
-    text = `TELEMETRY: SNAPSHOT · ${SNAPSHOT_DATE}`;
+    stateText = `SNAPSHOT · ${SNAPSHOT_DATE}`;
     ledClass = "led led--caution";
     feedClass = "feed feed--snapshot";
     title =
@@ -49,7 +49,16 @@ export function renderStatus() {
         : "The GitHub API is unreachable. Showing the baked snapshot.";
   }
 
-  badge.textContent = text;
+  // Two spans, not one string: the topbar is a single row on a phone and
+  // "TELEMETRY:" is the half of this badge a reader can infer from where it
+  // sits. The prefix is dropped under 620px (responsive.css); the state
+  // itself never is.
+  const prefix = document.createElement("span");
+  prefix.className = "feed__prefix";
+  prefix.textContent = "TELEMETRY:";
+  const body = document.createElement("span");
+  body.textContent = ` ${stateText}`;
+  badge.replaceChildren(prefix, body);
   led.className = ledClass;
   if (feed) feed.className = feedClass;
   if (feed) feed.title = title;

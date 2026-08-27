@@ -16,6 +16,36 @@ import { FIGURES, LABELLED, LINES, STARS } from "../data/stars.js";
 
 const RAD = Math.PI / 180;
 
+/**
+ * Label keep-out.
+ *
+ * The catalogue draws its labels wherever the sky puts them, and the sky
+ * does not know the DOM is there: PROCYON landed inside the E of the
+ * wordmark and ORION sat on the subtitle line. A star is welcome to sit
+ * behind the chrome — it is a window, that is the point — but 9px grey
+ * type over 128px display type is just two texts fighting.
+ *
+ * So the elements that must stay clean publish their viewport rects and the
+ * label pass skips any plate whose box intersects one. The star itself is
+ * always drawn: the sky is not edited, only its annotations are.
+ */
+const KEEP_OUT_PAD = 10;
+
+function intersects(rects, x, y, w, h) {
+  for (let i = 0; i < rects.length; i++) {
+    const r = rects[i];
+    if (
+      x < r.right + KEEP_OUT_PAD &&
+      x + w > r.left - KEEP_OUT_PAD &&
+      y < r.bottom + KEEP_OUT_PAD &&
+      y + h > r.top - KEEP_OUT_PAD
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /** Half the field of view, degrees. Wide enough to hold Orion to Gemini. */
 const HALF_FOV = 55;
 
@@ -171,6 +201,28 @@ export function initStarfield(canvas) {
   let lastDraw = 0;
   let lastProject = 0;
 
+  /** Elements the label pass must not write over. Set by setKeepOut(). */
+  let keepOutEls = [];
+  /** Their viewport rects, refreshed alongside the 1 Hz reprojection. */
+  let keepOut = [];
+  let keepOutQueued = false;
+
+  function measureKeepOut() {
+    if (!keepOutEls.length) {
+      keepOut = [];
+      return;
+    }
+    const out = [];
+    for (const el of keepOutEls) {
+      if (!el.isConnected) continue;
+      const r = el.getBoundingClientRect();
+      // Off-screen chrome cannot be written on, so it costs nothing to skip.
+      if (r.bottom < 0 || r.top > h || r.width === 0) continue;
+      out.push(r);
+    }
+    keepOut = out;
+  }
+
   const fxOn = () => document.documentElement.dataset.fx !== "off" && !reducedMotion();
 
   function reducedMotion() {
@@ -231,6 +283,7 @@ export function initStarfield(canvas) {
 
     projected = STARS.map((s) => projectPoint(s[1], s[2], ra0, dec0));
     projectedFigures = FIGURES.map((f) => projectPoint(f.ra, f.dec, ra0, dec0));
+    measureKeepOut();
   }
 
   function starSize(mag) {
@@ -316,14 +369,25 @@ export function initStarfield(canvas) {
     }
     ctx.stroke();
 
-    // Figure name plates.
+    // Figure name plates. Skipped where they would land on the chrome; the
+    // constellation LINES still run underneath it, because a line crossing
+    // behind a panel reads as depth and a word crossing behind one reads as
+    // a bug.
     ctx.font = '9px "JetBrains Mono", monospace';
     ctx.fillStyle = "#8a8a85";
     ctx.globalAlpha = 0.45;
     for (let i = 0; i < FIGURES.length; i++) {
       const p = projectedFigures[i];
       if (!p) continue;
-      ctx.fillText(FIGURES[i].name, p.x, p.y);
+      const name = FIGURES[i].name;
+      if (keepOut.length) {
+        const tw = name.length * 5.4;
+        // These are drawn inside the `translate(nearX, nearY)` above, so the
+        // parallax offset has to be added back to compare against rects
+        // measured in viewport coordinates.
+        if (intersects(keepOut, p.x + nearX, p.y + nearY - 8, tw, 10)) continue;
+      }
+      ctx.fillText(name, p.x, p.y);
     }
 
     // Stars.
@@ -353,10 +417,18 @@ export function initStarfield(canvas) {
       }
 
       if (LABELLED.has(name)) {
-        ctx.globalAlpha = 0.55;
-        ctx.fillStyle = "#8a8a85";
-        ctx.font = '9px "JetBrains Mono", monospace';
-        ctx.fillText(name.toUpperCase(), p.x + 7, p.y + 3);
+        const plate = name.toUpperCase();
+        const lx = p.x + 7;
+        const ly = p.y + 3;
+        if (
+          !keepOut.length ||
+          !intersects(keepOut, lx + nearX, ly + nearY - 8, plate.length * 5.4, 10)
+        ) {
+          ctx.globalAlpha = 0.55;
+          ctx.fillStyle = "#8a8a85";
+          ctx.font = '9px "JetBrains Mono", monospace';
+          ctx.fillText(plate, lx, ly);
+        }
       }
     }
 
@@ -454,6 +526,16 @@ export function initStarfield(canvas) {
 
   function onScroll() {
     scrollY = window.scrollY;
+    // The canvas is fixed and the chrome is not, so a scroll invalidates
+    // every keep-out rect. Two getBoundingClientRect calls, rate-limited to
+    // one frame — cheaper than the label overdraw it prevents.
+    if (keepOutEls.length && !keepOutQueued) {
+      keepOutQueued = true;
+      requestAnimationFrame(() => {
+        measureKeepOut();
+        keepOutQueued = false;
+      });
+    }
   }
 
   function onVisibility() {
@@ -471,6 +553,15 @@ export function initStarfield(canvas) {
   else paintStatic();
 
   return {
+    /**
+     * Register chrome the label pass must route around. Stars still draw
+     * behind it; only their name plates are suppressed.
+     */
+    setKeepOut(els) {
+      keepOutEls = els.filter(Boolean);
+      measureKeepOut();
+      if (!running) draw(performance.now());
+    },
     /** Called by the FX toggle. */
     setFx(on) {
       if (on) start();

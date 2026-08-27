@@ -84,6 +84,18 @@
 .feed--cached .feed__text { color: var(--warning); }
 .feed--snapshot .feed__text { color: var(--primary-dim); }
 
+/* ── The console section ────────────────────────────────────────────────
+
+   Four sections, four identical headers, four equal paddings, one panel
+   each: the rhythm was flat. Telemetry is the main instrument on the page,
+   so it is allowed to overrun the reading frame the other three sit inside.
+   It stops short of the viewport edge by the rail's gutter, because a
+   console that runs underneath the navigation is not confident, it is
+   broken. */
+.section--console > .wrap {
+  width: min(1560px, 100% - var(--rail-w) * 2 - 2.5rem);
+}
+
 /* ── Section header ────────────────────────────────────────────────────── */
 .sec-head {
   display: flex;
@@ -108,6 +120,13 @@
   height: var(--hairline);
   background: linear-gradient(to right, var(--border-hi), transparent);
   transform-origin: left center;
+}
+
+/* The console's rule runs the other way — into the index rather than away
+   from the title. One reversed hairline is enough to mark the section as
+   the odd one out without inventing a second header treatment. */
+.section--console .sec-head__rule {
+  background: linear-gradient(to left, var(--border-hi), transparent);
 }
 
 .sec-head__idx {

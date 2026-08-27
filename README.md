@@ -35,7 +35,7 @@ nothing is downloaded. Set `CHROME_PATH` if none is found.
 index.html          complete static markup; JS hydrates over it
 css/                tokens → base → animations → atmosphere → sections → responsive
 src/data/           github (fetch ladder), normalize, snapshot, astro, stars
-src/ui/             starfield, boot, reveal, and one module per section
+src/ui/             starfield, boot, reveal, rail, and one module per section
 scripts/            serve, smoke, shots, chrome resolver, astro checks
 ```
 
@@ -78,6 +78,29 @@ Two honest limits are visible in the UI rather than papered over:
 The commit total in the dossier is a captured figure (`88+`) because counting
 commits needs the search API, which this page does not call from the browser.
 
+### Composition
+
+Each screen is anchored to its edges rather than centred in its box. The hero
+pins the wordmark to the top and an instrument rail to the bottom of the
+viewport, with the sky in the gap; centring the block left 285px of nothing
+above and below it and no element touching a frame, which is not how a
+console composes. The reticle bracketing the wordmark is the tracked-object
+lock-on applied to the station itself — static, because the cards earn the
+fly-in by being acquired and the station is already acquired.
+
+Telemetry is the one section allowed to overrun the reading frame the other
+three sit inside: it is the main instrument, and one full-bleed panel is
+cheaper variation than a second header treatment. It stops short of the
+viewport edge by the rail's gutter, because a console running underneath the
+navigation reads as broken rather than as confident.
+
+Grids are not allowed to end ragged. Seven objects into three columns is
+3 + 3 + 1, and the honest fill for the gap is chrome, not a stretched card:
+the survey plate states the status of the *list*, which is the one thing on
+that screen that is not about an object in it. Its span is computed from the
+resolved track count — `grid-column-end: -1` alone gives an item a span of
+one and hangs it off the last line, which trades one orphan for two.
+
 ### The sky
 
 `src/data/stars.js` is a real catalogue — 81 bright stars of the northern
@@ -107,6 +130,14 @@ positions. The fill is invented, so it is laid out directly on a wrapping
 virtual plane slightly larger than the viewport — even by construction,
 regenerated on resize, wrapping on both axes because scroll parallax alone
 can walk a screen-space layer off the top of a long page.
+
+The catalogue's labels route around the chrome. The sky does not know the DOM
+is there, so PROCYON was landing inside the E of the wordmark and ORION on
+the subtitle line — 9px grey type and 128px display type fighting for the
+same pixels. Elements that must stay clean publish their viewport rects and
+the label pass skips any plate that intersects one. The stars themselves are
+always drawn, and so are the constellation lines: a line crossing behind a
+panel reads as depth, a word crossing behind one reads as a bug.
 
 The Julian Date, sidereal time, lunar phase and mission-day readouts are all
 computed, not fetched — `scripts/check-astro.mjs` checks them against
@@ -158,3 +189,37 @@ on it: black grounds, chamfered corners rather than radii, uppercase mono
 labels, orange for command chrome, cyan for observational data, the severity
 ramp for magnitude. Colour tokens live in `css/tokens.css` — a literal colour
 or duration anywhere else is a bug.
+
+**Violet is not a measurement.** It marks a figure the station cannot
+currently vouch for: the captured commit total, an unacquired ISS signal, a
+tracked object whose contact age is unknown because the page is running
+without scripts, a section of the rail not yet reached. It is never used for
+a live reading — that distinction is the whole job it does. `--violet` is
+the fill hue at 3.69:1 (non-text only); `--violet-hi` is the text tier.
+
+**A light that never changes is decoration.** The card LEDs used to be
+`led--nominal` on every object, seven identical greens reporting nothing and
+spending the ramp's credibility. They are driven by days-since-contact now,
+and they hold still: a blink is an alarm and an alarm is singular, so
+repeating one down a grid makes a strobe rather than a warning.
+
+**Colour is never the sole carrier.** Readout values took weight 500 against
+their labels' 400, so a reading survives greyscale; the rail's active tick
+grows as well as changing hue; the log's overflow is a mask, which is a shape.
+
+Every text tier clears WCAG AA on the page's black ground. `--text-faint` was
+`#6a6a65` — 3.86:1, under the line, and it carries the 9px ornaments. It is
+`#767671` (4.60:1) now, which is the same mood one step brighter.
+
+### Wayfinding
+
+The rail down the right edge is the page's only navigation. The topbar's
+centre holds four clocks and keeps them: they are the station's instruments.
+Navigation belongs at the edge, where a vertical tick rail is both the right
+shape for a scroll position and squarely in this language — violet until a
+section is reached, cyan after, orange for the one you are in.
+
+Active section is chosen by which section's box contains the viewport's
+midline, not by which is most visible: the hero is a full viewport and
+telemetry is ~1000px, so a ratio test hands the rail to whichever section is
+longest while its heading is far off screen.

@@ -2,14 +2,39 @@
    RESPONSIVE — last in the cascade.
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/* The rail is hidden below 900px, so the console reclaims its gutter. */
+@media (max-width: 1300px) {
+  .section--console > .wrap {
+    width: min(1560px, 100% - var(--rail-w) - 2.5rem);
+  }
+}
+
 @media (max-width: 1100px) {
+  /* One column: the explicit placements have to be released or the panels
+     stay pinned to columns that no longer exist. */
   .telemetry {
     grid-template-columns: 1fr;
+    grid-template-rows: none;
+  }
+
+  .telemetry__activity,
+  .telemetry__astro,
+  .telemetry__log {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .log {
+    max-height: 320px;
   }
 }
 
 @media (max-width: 900px) {
   .wrap {
+    width: min(1180px, 100% - 2rem);
+  }
+
+  .section--console > .wrap {
     width: min(1180px, 100% - 2rem);
   }
 
@@ -57,9 +82,56 @@
 }
 
 @media (max-width: 620px) {
+  /* The topbar wrapped to three rows here — ~90px of permanently sticky
+     chrome out of an 844px phone viewport, 11% of the screen spent on
+     furniture. One row: brand, UTC, and the state of the feed. JD and GMST
+     are not lost, they are in the observation deck panel where they are
+     also stated. */
+  .topbar {
+    flex-wrap: nowrap;
+    gap: 0.75rem;
+  }
+
   .topbar__gmst,
-  .topbar__local {
+  .topbar__local,
+  .topbar__jd {
     display: none;
+  }
+
+  .topbar__clocks {
+    order: 0;
+    width: auto;
+    justify-content: flex-start;
+    margin-inline: auto 0;
+  }
+
+  .topbar__right {
+    gap: 0.6rem;
+    /* One row means the row has to be allowed to give: without this the
+       badge ran off the right edge and read "TELEMETRY: L". */
+    min-width: 0;
+  }
+
+  /* The badge's subject is obvious in a topbar this size; its state is not.
+     Drop the noun, keep the reading. */
+  .feed__prefix {
+    display: none;
+  }
+
+  .feed__text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .brand__sub {
+    display: none;
+  }
+
+  /* Back to one row, so the anchor clearance from the 900px block is wrong. */
+  .section {
+    scroll-margin-top: calc(var(--topbar-h) + 1rem);
   }
 
   .objects {
@@ -70,12 +142,31 @@
     gap: 0.5rem;
   }
 
+  /* The reticle steps 1.35rem outboard of the content, and the page gutter
+     here is only 1rem — so on a phone the brackets hung 6px past the
+     viewport. `overflow-x: hidden` on body swallowed the scrollbar, which
+     made it invisible rather than absent. It is pulled inside the gutter. */
+  .hero__reticle {
+    left: -0.5rem;
+    width: calc(100% + 1rem);
+  }
+
   .hero__jp {
     font-size: 0.75rem;
   }
 
   .hero__strip {
-    gap: 0.4rem 1rem;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.7rem 1rem;
+  }
+
+  .hero__readouts {
+    gap: 0.4rem 1.1rem;
+  }
+
+  .objects__plate {
+    grid-column-end: auto;
   }
 
   .footer__bar {

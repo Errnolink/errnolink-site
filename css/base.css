@@ -138,12 +138,31 @@ canvas {
 
 .value {
   color: var(--cyan);
+  /* Colour alone separated data from label, which is the exact thing the LED
+     rule below warns against. 500 against the labels' 400 carries it
+     optically too, so a reading survives greyscale. */
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
 .value--hot { color: var(--primary-hot); }
 .value--nominal { color: var(--success); }
 .value--dim { color: var(--text-dim); }
+
+/* A figure the station cannot vouch for: captured by hand, or not yet
+   acquired. Violet is never a live reading — see tokens.css. */
+.value--unresolved,
+.readout--unresolved .readout__value {
+  color: var(--violet-hi);
+}
+
+/* The two places the page speaks rather than reports. */
+.lead {
+  font-size: var(--size-lead);
+  line-height: 1.6;
+  color: var(--text);
+  letter-spacing: 0.005em;
+}
 
 /* Label / value pair, the workhorse readout of the whole site. */
 .readout {
@@ -163,6 +182,7 @@ canvas {
 .readout__value {
   font-size: var(--size-label);
   color: var(--cyan);
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
@@ -271,6 +291,12 @@ a:focus-visible::after {
 .led--caution { color: var(--warning); animation: blink var(--t-blink) step-end infinite; }
 .led--critical { color: var(--danger); animation: blink 500ms step-end infinite; }
 .led--idle { color: var(--border-hi); box-shadow: none; }
+.led--unresolved { color: var(--violet); }
+
+/* A blink is an alarm, and an alarm is singular. Where the same light is
+   repeated down a grid — one per tracked object — it reports state and
+   holds still; blinking seven of them at once is a strobe, not a warning. */
+.led--static { animation: none !important; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    CHAMFER — the corner language. Sharp cuts, never radii.

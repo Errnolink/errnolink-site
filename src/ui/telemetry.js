@@ -26,6 +26,27 @@ function el(tag, className, text) {
   return node;
 }
 
+/**
+ * The log's bottom edge is masked to a fade so a partly-visible row reads as
+ * "more below" rather than as a line sliced through its glyphs. The mask is
+ * lifted at the end of the scroll, because dimming the final entry when
+ * there is nothing after it is just hiding data.
+ */
+function watchLogScroll(list) {
+  if (list.dataset.watched) return;
+  list.dataset.watched = "1";
+
+  const sync = () => {
+    // 2px of slack: fractional scroll heights never land exactly.
+    const atEnd = list.scrollTop + list.clientHeight >= list.scrollHeight - 2;
+    list.classList.toggle("is-end", atEnd);
+  };
+
+  list.addEventListener("scroll", sync, { passive: true });
+  window.addEventListener("resize", sync, { passive: true });
+  sync();
+}
+
 function renderLog() {
   const list = document.getElementById("event-log");
   if (!list || !state.events.length) return;
@@ -43,6 +64,11 @@ function renderLog() {
     frag.append(li);
   });
   list.replaceChildren(frag);
+
+  const count = document.getElementById("log-count");
+  if (count) count.textContent = `· ${Math.min(state.events.length, 14)} ENTRIES`;
+
+  watchLogScroll(list);
 }
 
 /** Three character rows = twelve dot rows. Enough to read a shape. */
@@ -168,12 +194,14 @@ function startISS() {
       const ns = lat >= 0 ? "N" : "S";
       const ew = lon >= 0 ? "E" : "W";
       out.textContent = `${Math.abs(lat).toFixed(2)}°${ns} ${Math.abs(lon).toFixed(2)}°${ew}`;
-      out.classList.remove("value--dim");
+      out.classList.remove("value--dim", "value--unresolved");
       failures = 0;
     } catch {
       failures++;
       out.textContent = "NO SIGNAL";
-      out.classList.add("value--dim");
+      // Violet, not grey: this is the page's one unacquired signal, and the
+      // token exists precisely to say "not vouched for". See tokens.css.
+      out.classList.add("value--unresolved");
     }
     // Back off after repeated silence rather than hammering a dead endpoint.
     const wait = failures === 0 ? ISS_POLL_MS : Math.min(ISS_POLL_MS * 2 ** failures, 300000);
